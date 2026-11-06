@@ -7,12 +7,13 @@
 </head>
 <body>
 <?php
+require_once __DIR__ . '/src/bootstrap.php';
 
-$mail=$_POST['mail']; 
+$mail = $_POST['mail'] ?? ''; 
 
-if (isset($_POST['name'])) {$name = $_POST['name'];}
-if (isset($_POST['email'])) {$email = $_POST['email'];}
-if (isset($_POST['mess'])) {$mess = $_POST['mess'];}
+if (isset($_POST['name'])) {$name = $_POST['name'] ?? '';}
+if (isset($_POST['email'])) {$email = $_POST['email'] ?? '';}
+if (isset($_POST['mess'])) {$mess = $_POST['mess'] ?? '';}
 
 $name = htmlspecialchars(trim($name));
 $email = htmlspecialchars(trim($email));

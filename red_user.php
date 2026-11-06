@@ -9,15 +9,16 @@
 
 
 <?php
+require_once __DIR__ . '/src/bootstrap.php';
 
 
-$id=$_GET['code'];
+$id = $_GET['code'] ?? '';
 include("db.php");    		
 
-$sql = mysql_query("SELECT * FROM richstone_user WHERE id = $id");
+$sql = Database::query(Database::statement('SELECT * FROM richstone_user WHERE id = ?', [(int)($id)]));
   echo ("<table width=800 border='0' align=center cellpadding='0' cellspacing='0'>");
 
-while ($tablerows = mysql_fetch_row($sql))
+while ($tablerows = Database::fetchRow($sql))
 
 {
 print ("

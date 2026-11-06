@@ -1,10 +1,11 @@
 <?php
+require_once __DIR__ . '/src/bootstrap.php';
+header('Content-Type: text/html; charset=UTF-8');
 date_default_timezone_set('Europe/Moscow');
 // --- НАСТРОЙКИ ПОДКЛЮЧЕНИЯ --- //
-$db = mysql_connect('localhost', 'root', 'web2012irc');
+$db = Database::connect(null, 'utf8mb4');
 if (!$db) die('Ошибка подключения к MySQL');
-if (!mysql_select_db('telephone', $db)) die('Ошибка выбора базы данных');
-mysql_set_charset('cp1251');
+
 
 // Диапазон лет
 $startYear = 2024;
@@ -17,14 +18,18 @@ $months = array(
 );
 $month = isset($_GET['month']) ? (int)$_GET['month'] : (int)date('n');
 $year = isset($_GET['year']) ? (int)$_GET['year'] : (int)date('Y');
+if ($month < 1 || $month > 12 || $year < 1 || $year > 9999) {
+    http_response_code(400);
+    exit('Invalid month or year');
+}
 $daysInMonth = cal_days_in_month(CAL_GREGORIAN, $month, $year);
 $todayDay = ($month == date('n') && $year == date('Y')) ? (int)date('j') : null;
 
 // --- Загружаем все ДР из БД и строим карту: месяц => день => количество --- //
-$res = mysql_query("SELECT dr FROM richstone_katalog");
+$res = Database::query("SELECT dr FROM richstone_katalog");
 $birthdays = array();
-while ($row = mysql_fetch_assoc($res)) {
-    $dt = explode('.', $row['dr']);
+while ($row = Database::fetchAssoc($res)) {
+    $dt = explode('.', $row['dr'] ?? '');
     if (count($dt) == 3) {
         $d = (int)$dt[0];
         $m = (int)$dt[1];

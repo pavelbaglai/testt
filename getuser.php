@@ -1,11 +1,12 @@
 <?php
+require_once __DIR__ . '/src/bootstrap.php';
 include("db.php");    		
-mysql_connect("$host", "$username", "$passwd") or die("Ошибка подключения к базе");
-mysql_select_db("$db_name") or die("База не найдена");
+Database::connect() or die("Ошибка подключения к базе");
+Database::selectDatabase("$db_name") or die("База не найдена");
 header("Content-Type: text/html;charset=windows-1251;");
-$user_get = $_GET['q'];
+$user_get = $_GET['q'] ?? '';
 $user_get = iconv("utf-8", "WINDOWS-1251", $user_get);  
-$sql=mysql_query('SET NAMES cp1251');                                                                                                                                         
+$sql=Database::query('SET NAMES cp1251');                                                                                                                                         
 
 
 
@@ -52,14 +53,14 @@ $user_get=strtr($user_get, $trans);
 
 
 if ((isset($user_get))) {
-   $sql = mysql_query("SELECT * FROM `richstone_katalog` WHERE (`radiobutton` between 1 and 5) and  ((`tel` LIKE '%{$user_get}%') OR (`fname` LIKE '%{$user_get}%' COLLATE cp1251_general_ci) OR (`lname` LIKE '%{$user_get}%' COLLATE cp1251_general_ci) OR (`office` LIKE '%{$user_get}%') OR (`information` LIKE '%{$user_get}%' COLLATE cp1251_general_ci) OR (`email` LIKE '%{$user_get}%') OR (`email2` LIKE '%{$user_get}%') OR (`sotovi1` LIKE '%{$user_get}%' COLLATE cp1251_general_ci) OR (`sotovi2` LIKE '%{$user_get}%' COLLATE cp1251_general_ci) OR (`dr` LIKE '%{$user_get}%' COLLATE cp1251_general_ci)) order by num_otdel ASC LIMIT 11 ");
-//   $sql = mysql_query("SELECT * FROM `richstone_katalog` WHERE (`radiobutton` between 1 and 5) and  ((`tel` LIKE '%{$user_get}%') OR (`fname` LIKE '%{$user_get}%' COLLATE cp1251_general_ci) OR (`lname` LIKE '%{$user_get}%' COLLATE cp1251_general_ci) OR (`office` LIKE '%{$user_get}%') OR (`information` LIKE '%{$user_get}%' COLLATE cp1251_general_ci) OR (`email` LIKE '%{$user_get}%') OR (`name` LIKE '%{$user_get}%' COLLATE cp1251_general_ci) OR (`sotovi1` LIKE '%{$user_get}%' COLLATE cp1251_general_ci) OR (`sotovi2` LIKE '%{$user_get}%' COLLATE cp1251_general_ci) OR (`otdel` LIKE '%{$user_get}%' COLLATE cp1251_general_ci)) order by num_otdel ASC LIMIT 9 ");
-//   $sql = mysql_query("SELECT * FROM `richstone_katalog` WHERE (`radiobutton` between 1 and 5) and  ((`tel` LIKE '%{$user_get}%') OR (`fname` LIKE '%{$user_get}%' COLLATE cp1251_general_ci) OR (`lname` LIKE '%{$user_get}%' COLLATE cp1251_general_ci) OR (`office` LIKE '%{$user_get}%') OR (`information` LIKE '%{$user_get}%' COLLATE cp1251_general_ci) OR (`email` LIKE '%{$user_get}%') OR (`name` LIKE '%{$user_get}%' COLLATE cp1251_general_ci) OR (`otdel` LIKE '%{$user_get}%' COLLATE cp1251_general_ci)) order by num_otdel ASC LIMIT 9 ");
-//   $sql = mysql_query("SELECT * FROM `richstone_katalog` WHERE (`radiobutton` between 1 and 5) and  ((`tel` LIKE '%{$user_get1}%') OR (`fname` LIKE '%{$user_get1}%' COLLATE cp1251_general_ci) OR (`lname` LIKE '%{$user_get1}%' COLLATE cp1251_general_ci) OR (`office` LIKE '%{$user_get1}%') OR (`information` LIKE '%{$user_get1}%' COLLATE cp1251_general_ci) OR (`email` LIKE '%{$user_get1}%') OR (`name` LIKE '%{$user_get1}%' COLLATE cp1251_general_ci) OR (`otdel` LIKE '%{$user_get1}%' COLLATE cp1251_general_ci)) order by num_otdel ASC LIMIT 9 ");
-//   $sql = mysql_query("SELECT * FROM `richstone_katalog` WHERE (`radiobutton` between 1 and 5) and  ((`tel` LIKE '%{$user_get}%') OR (`fname` LIKE '%{$user_get}%' COLLATE cp1251_general_ci) OR (`lname` LIKE '%{$user_get}%' COLLATE cp1251_general_ci) OR (`office` LIKE '%{$user_get}%') OR (`information` LIKE '%{$user_get}%' COLLATE cp1251_general_ci) OR (`email` LIKE '%{$user_get}%') OR (`name` LIKE '%{$user_get}%' COLLATE cp1251_general_ci) OR (`otdel` LIKE '%{$user_get}%' COLLATE cp1251_general_ci)) order by num_otdel ASC LIMIT 9 ");
-   $sqll = mysql_query("SELECT * FROM `richstone_katalog` WHERE (`radiobutton` between 1 and 5) and  ((`tel` LIKE '%{$user_get}%') OR (`fname` LIKE '%{$user_get}%' COLLATE cp1251_general_ci) OR (`lname` LIKE '%{$user_get}%'  COLLATE cp1251_general_ci) OR (`office` LIKE '%{$user_get}%') OR (`information` LIKE '%{$user_get}%' COLLATE cp1251_general_ci) OR (`email` LIKE '%{$user_get}%') OR (`email2` LIKE '%{$user_get}%') OR (`name` LIKE '%{$user_get}%' COLLATE cp1251_general_ci) OR (`dr` LIKE '%{$user_get}%' COLLATE cp1251_general_ci))");
-$county = mysql_num_rows($sqll);
-    if (mysql_num_rows($sql) != 0) {
+   $sql = Database::query(Database::statement('SELECT * FROM `richstone_katalog` WHERE (`radiobutton` between 1 and 5) and  ((`tel` LIKE ?) OR (`fname` LIKE ? COLLATE cp1251_general_ci) OR (`lname` LIKE ? COLLATE cp1251_general_ci) OR (`office` LIKE ?) OR (`information` LIKE ? COLLATE cp1251_general_ci) OR (`email` LIKE ?) OR (`email2` LIKE ?) OR (`sotovi1` LIKE ? COLLATE cp1251_general_ci) OR (`sotovi2` LIKE ? COLLATE cp1251_general_ci) OR (`dr` LIKE ? COLLATE cp1251_general_ci)) order by num_otdel ASC LIMIT 11 ', ['%' . ($user_get) . '%', '%' . ($user_get) . '%', '%' . ($user_get) . '%', '%' . ($user_get) . '%', '%' . ($user_get) . '%', '%' . ($user_get) . '%', '%' . ($user_get) . '%', '%' . ($user_get) . '%', '%' . ($user_get) . '%', '%' . ($user_get) . '%']));
+//   $sql = Database::query("SELECT * FROM `richstone_katalog` WHERE (`radiobutton` between 1 and 5) and  ((`tel` LIKE '%{$user_get}%') OR (`fname` LIKE '%{$user_get}%' COLLATE cp1251_general_ci) OR (`lname` LIKE '%{$user_get}%' COLLATE cp1251_general_ci) OR (`office` LIKE '%{$user_get}%') OR (`information` LIKE '%{$user_get}%' COLLATE cp1251_general_ci) OR (`email` LIKE '%{$user_get}%') OR (`name` LIKE '%{$user_get}%' COLLATE cp1251_general_ci) OR (`sotovi1` LIKE '%{$user_get}%' COLLATE cp1251_general_ci) OR (`sotovi2` LIKE '%{$user_get}%' COLLATE cp1251_general_ci) OR (`otdel` LIKE '%{$user_get}%' COLLATE cp1251_general_ci)) order by num_otdel ASC LIMIT 9 ");
+//   $sql = Database::query("SELECT * FROM `richstone_katalog` WHERE (`radiobutton` between 1 and 5) and  ((`tel` LIKE '%{$user_get}%') OR (`fname` LIKE '%{$user_get}%' COLLATE cp1251_general_ci) OR (`lname` LIKE '%{$user_get}%' COLLATE cp1251_general_ci) OR (`office` LIKE '%{$user_get}%') OR (`information` LIKE '%{$user_get}%' COLLATE cp1251_general_ci) OR (`email` LIKE '%{$user_get}%') OR (`name` LIKE '%{$user_get}%' COLLATE cp1251_general_ci) OR (`otdel` LIKE '%{$user_get}%' COLLATE cp1251_general_ci)) order by num_otdel ASC LIMIT 9 ");
+//   $sql = Database::query("SELECT * FROM `richstone_katalog` WHERE (`radiobutton` between 1 and 5) and  ((`tel` LIKE '%{$user_get1}%') OR (`fname` LIKE '%{$user_get1}%' COLLATE cp1251_general_ci) OR (`lname` LIKE '%{$user_get1}%' COLLATE cp1251_general_ci) OR (`office` LIKE '%{$user_get1}%') OR (`information` LIKE '%{$user_get1}%' COLLATE cp1251_general_ci) OR (`email` LIKE '%{$user_get1}%') OR (`name` LIKE '%{$user_get1}%' COLLATE cp1251_general_ci) OR (`otdel` LIKE '%{$user_get1}%' COLLATE cp1251_general_ci)) order by num_otdel ASC LIMIT 9 ");
+//   $sql = Database::query("SELECT * FROM `richstone_katalog` WHERE (`radiobutton` between 1 and 5) and  ((`tel` LIKE '%{$user_get}%') OR (`fname` LIKE '%{$user_get}%' COLLATE cp1251_general_ci) OR (`lname` LIKE '%{$user_get}%' COLLATE cp1251_general_ci) OR (`office` LIKE '%{$user_get}%') OR (`information` LIKE '%{$user_get}%' COLLATE cp1251_general_ci) OR (`email` LIKE '%{$user_get}%') OR (`name` LIKE '%{$user_get}%' COLLATE cp1251_general_ci) OR (`otdel` LIKE '%{$user_get}%' COLLATE cp1251_general_ci)) order by num_otdel ASC LIMIT 9 ");
+   $sqll = Database::query(Database::statement('SELECT * FROM `richstone_katalog` WHERE (`radiobutton` between 1 and 5) and  ((`tel` LIKE ?) OR (`fname` LIKE ? COLLATE cp1251_general_ci) OR (`lname` LIKE ?  COLLATE cp1251_general_ci) OR (`office` LIKE ?) OR (`information` LIKE ? COLLATE cp1251_general_ci) OR (`email` LIKE ?) OR (`email2` LIKE ?) OR (`name` LIKE ? COLLATE cp1251_general_ci) OR (`dr` LIKE ? COLLATE cp1251_general_ci))', ['%' . ($user_get) . '%', '%' . ($user_get) . '%', '%' . ($user_get) . '%', '%' . ($user_get) . '%', '%' . ($user_get) . '%', '%' . ($user_get) . '%', '%' . ($user_get) . '%', '%' . ($user_get) . '%', '%' . ($user_get) . '%']));
+$county = Database::numRows($sqll);
+    if (Database::numRows($sql) != 0) {
 
             echo "
 <table cellpadding='0' cellspacing='0' border='0' width='470'>
@@ -71,7 +72,7 @@ $county = mysql_num_rows($sqll);
 ";
 
 
-        while ($row = mysql_fetch_assoc($sql)) {
+        while ($row = Database::fetchAssoc($sql)) {
 $i++;
 if (preg_match_all ("!src=\"(.*?)\"!si", $row['bfoto'], $out))
 $v=$out[1][0];
@@ -207,7 +208,7 @@ echo "<td width='163' class='infbs' align='left' valign='bottom'>". $row['tel'] 
 
 
 
-$ipus=$_SERVER["REMOTE_ADDR"];
+$ipus = $_SERVER["REMOTE_ADDR"] ?? '';
 if ($ipus== "10.1.1.141")
  {
 if ($row['dr']==null)
@@ -220,7 +221,7 @@ else
 echo calculate_age($row['dr']);
 }
  }
-$ipus=$_SERVER["REMOTE_ADDR"];
+$ipus = $_SERVER["REMOTE_ADDR"] ?? '';
 if ($ipus== "10.1.1.1")
  {
 if ($row['dr']==null)
@@ -233,7 +234,7 @@ else
 echo calculate_age($row['dr']);
 }
  }
-$ipus=$_SERVER["REMOTE_ADDR"];
+$ipus = $_SERVER["REMOTE_ADDR"] ?? '';
 if ($ipus== "10.1.2.128")
  {
 if ($row['dr']==null)
@@ -246,7 +247,7 @@ else
 echo calculate_age($row['dr']);
 }
  }
-$ipus=$_SERVER["REMOTE_ADDR"];
+$ipus = $_SERVER["REMOTE_ADDR"] ?? '';
 if ($ipus== "10.1.0.137")
  {
 if ($row['dr']==null)
@@ -281,13 +282,13 @@ echo "</td></tr>";
 
 
 
-   $sqls = mysql_query("SELECT * FROM `richstone_katalog` WHERE (`radiobutton` between 1 and 5)");
-//   $sqls = mysql_query("SELECT * FROM richstone_katalog");
+   $sqls = Database::query("SELECT * FROM `richstone_katalog` WHERE (`radiobutton` between 1 and 5)");
+//   $sqls = Database::query("SELECT * FROM richstone_katalog");
 
 
-        while ($rows = mysql_fetch_assoc($sqls)) {
+        while ($rows = Database::fetchAssoc($sqls)) {
 
-$dd=$rows['dr'];
+$dd = $rows['dr'] ?? '';
 $cut = substr($dd, 0, 6);
 $d=date('d.m.');
 
@@ -319,12 +320,12 @@ echo "</b></td></tr>
 
 
 
-   $sqls = mysql_query("SELECT * FROM `richstone_katalog` WHERE (`radiobutton` between 1 and 5)");
-        while ($rows = mysql_fetch_assoc($sqls)) {
+   $sqls = Database::query("SELECT * FROM `richstone_katalog` WHERE (`radiobutton` between 1 and 5)");
+        while ($rows = Database::fetchAssoc($sqls)) {
 
 $tomm_date=time()+60*60*24; 
 $tom_date=date("d.m.",$tomm_date);
-$dd=$rows['dr'];
+$dd = $rows['dr'] ?? '';
 $cut = substr($dd, 0, 6);
 if ($tom_date==$cut)
 {

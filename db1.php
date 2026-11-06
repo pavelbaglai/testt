@@ -1,12 +1,7 @@
 <?php
-$host='localhost';
-$username='root';
-$passwd='web2012irc';
-$db_name='telephone'; 
-$sock=mysql_connect($host,$username,$passwd);  
-$db = mysql_connect("localhost","root","web2012irc");
-$sql=mysql_query('SET NAMES cp1251');
-mysql_select_db("telephone" ,$db);
-
-
-?>
+require_once __DIR__ . '/src/bootstrap.php';
+$host = Database::setting('DB_HOST', '127.0.0.1');
+$username = Database::setting('DB_USER', '');
+$passwd = Database::setting('DB_PASSWORD', '');
+$db_name = Database::setting('DB_NAME', 'telephone');
+$sock = $db = Database::connect($db_name);

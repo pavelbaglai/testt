@@ -1,73 +1,7 @@
 <?php
-
-  ///////////////////////////////////////////////////
-
-  // 2006 (C) IT-студи€ SoftTime (http://www.softtime.ru)
-
-  ///////////////////////////////////////////////////
-
-  // сейчас выставлен сервер локальной машины
-
-  $dblocation = "localhost";
-
-  // »м€ базы данных, на хостинге или локальной машине
-
-  $dbname = "telephone";
-
-  // »м€ пользовател€ базы данных
-
-  $dbuser = "root";
-
-  // и его пароль
-
-  $dbpasswd = "Aa1234";
-
-
-
-  // ”станавливаем соединение с базой данных
-
-  $dbcnx = @mysql_connect($dblocation,$dbuser,$dbpasswd);
-
-  if (!$dbcnx) {
-
-   exit( "<P>¬ насто€щий момент сервер базы данных не доступен, поэтому корректное отображение страницы невозможно.</P>" );
-
-  }
-
-  // ¬ыбираем базу данных
-
-  if (! @mysql_select_db($dbname,$dbcnx) ) {
-
-    exit( "<P>¬ насто€щий момент база данных не доступна, поэтому корректное отображение страницы невозможно.</P>" );
-
-  }
-
-
-
-  // ќпредел€ем версию сервера
-
-  $query = "SELECT VERSION()";
-
-  $ver = mysql_query($query);
-
-  if(!$ver) exit("ќшибка при определении версии MySQL-сервера");
-
-  $version = mysql_result($ver, 0);
-
-  list($major, $minor) = explode(".", $version);
-
-  // ≈сли верси€ выше 4.1 сообщаем серверу, что будем работать с
-
-  // кодировкой cp1251
-
-  $ver = $major.".".$minor;
-
-  if((float)$ver >= 4.1)
-
-  {
-
-    mysql_query("SET NAMES 'cp1251'");
-
-  }
-
-?>
+require_once __DIR__ . '/db.php';
+$dblocation = $host;
+$dbname = $db_name;
+$dbuser = $username;
+$dbpasswd = $passwd;
+$dbcnx = $db;

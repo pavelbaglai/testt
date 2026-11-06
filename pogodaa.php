@@ -62,7 +62,8 @@
         </style>
     </head>
 </html>
-<?php 
+<?php
+require_once __DIR__ . '/src/bootstrap.php'; 
 $start = strtotime('2026-01-28 09:00:00');
 $pro7 = strtotime('2026-01-28 12:00:00');
 $pro8 = strtotime('2026-01-28 15:00:00');

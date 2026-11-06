@@ -1,24 +1,25 @@
-<?php 
-$user_flag=$_COOKIE['user_flag']; 
+<?php
+require_once __DIR__ . '/src/bootstrap.php'; 
+$user_flag = $_COOKIE['user_flag'] ?? 0; 
 if($user_flag==0){ 
- header("Location: error.php"); }
+ header("Location: error.php"); exit; }
 
 
 
-$pageblankid=$_POST['pageblankid'];
+$pageblankid = $_POST['pageblankid'] ?? '';
 
 
-$opisdop=$_POST['opisdop'];
+$opisdop = $_POST['opisdop'] ?? '';
 
-$qr_text="update blankiname set opisdop='".$opisdop."' WHERE id=".$pageblankid."";
+$qr_text=Database::statement('update blankiname set opisdop=? WHERE id=?', [($opisdop), (int)($pageblankid)]);
 
 
 include("db.php");    		
-$connect=mysql_connect($host,$username,$passwd);	
-$qr=mysql_query('set names cp1251');	
-$db=mysql_select_db($db_name);	
-$qr=mysql_query($qr_text);	
-mysql_close($connect);    
+$connect=Database::connect();	
+$qr=Database::query('set names cp1251');	
+$db=Database::selectDatabase($db_name);	
+$qr=Database::query($qr_text);	
+Database::close($connect);    
 
 //$url=<A HREF=\"javascript:history.back()\" onMouseOver=\"window.status='Назад';return true\" class='textcolg'>Вернуться назад</A>;
 

@@ -1,12 +1,13 @@
-<?php  
-$user_flag=$_COOKIE['user_flag']; 
-$page_id=$_POST['list_page']; 
-$page_user=$_POST['adresat']; 
-$work_id=$_GET['work']; 
-$user_logon=$_COOKIE['user_logon']; 
-$user_name=$_COOKIE['user_name']; 
-$user_fname=$_COOKIE['user_fname']; 
-$user_sname=$_COOKIE['user_sname']; 
+<?php
+require_once __DIR__ . '/src/bootstrap.php';  
+$user_flag = $_COOKIE['user_flag'] ?? 0; 
+$page_id = $_POST['list_page'] ?? ''; 
+$page_user = $_POST['adresat'] ?? ''; 
+$work_id = $_GET['work'] ?? ''; 
+$user_logon = $_COOKIE['user_logon'] ?? ''; 
+$user_name = $_COOKIE['user_name'] ?? ''; 
+$user_fname = $_COOKIE['user_fname'] ?? ''; 
+$user_sname = $_COOKIE['user_sname'] ?? ''; 
 global $ar;
 global $am;
 global $ai;
@@ -31,32 +32,32 @@ global $page_date_ins;
 global $radiobutton;
 global $page_num_otdel_ins;
 
-$action = $_POST["action"];
-$ar = $_POST["ar"];
-$am = $_POST["am"];
-$ai = $_POST["ai"];
-$ao = $_POST["ao"];
-$ac = $_POST["ac"];
-$an = $_POST["an"];
-$ak = $_POST["ak"];
-$ap = $_POST["ap"];
-$idx = $_POST["idx"];
-$rad = $_POST["rad"];
+$action = $_POST["action"] ?? '';
+$ar = $_POST["ar"] ?? [];
+$am = $_POST["am"] ?? [];
+$ai = $_POST["ai"] ?? '';
+$ao = $_POST["ao"] ?? '';
+$ac = $_POST["ac"] ?? [];
+$an = $_POST["an"] ?? '';
+$ak = $_POST["ak"] ?? '';
+$ap = $_POST["ap"] ?? '';
+$idx = $_POST["idx"] ?? '';
+$rad = $_POST["rad"] ?? '';
 
-$page_lname_ins = $_POST["page_lname_ins"];
-$page_fname_ins = $_POST["page_fname_ins"];
-$page_name_ins = $_POST["page_name_ins"];
-$page_user_ins = $_POST["page_user_ins"];
-$page_email_ins = $_POST["page_email_ins"];
-$page_otdel_ins = $_POST["page_otdel_ins"];
-$page_office_ins = $_POST["page_office_ins"];
-$page_key_page_ins1 = $_POST["page_key_page_ins1"];
-$page_tel_ins = $_POST["page_tel_ins"];
-$page_id_ins1 = $_POST["page_id_ins1"];
-$page_adress_ins = $_POST["page_adress_ins"];
-$page_date_ins = $_POST["page_date_ins"];
-$radiobutton = $_POST["radiobutton"];
-$page_num_otdel_ins = $_POST["page_num_otdel_ins"];
+$page_lname_ins = $_POST["page_lname_ins"] ?? [];
+$page_fname_ins = $_POST["page_fname_ins"] ?? [];
+$page_name_ins = $_POST["page_name_ins"] ?? [];
+$page_user_ins = $_POST["page_user_ins"] ?? [];
+$page_email_ins = $_POST["page_email_ins"] ?? [];
+$page_otdel_ins = $_POST["page_otdel_ins"] ?? [];
+$page_office_ins = $_POST["page_office_ins"] ?? [];
+$page_key_page_ins1 = $_POST["page_key_page_ins1"] ?? [];
+$page_tel_ins = $_POST["page_tel_ins"] ?? [];
+$page_id_ins1 = $_POST["page_id_ins1"] ?? '';
+$page_adress_ins = $_POST["page_adress_ins"] ?? [];
+$page_date_ins = $_POST["page_date_ins"] ?? [];
+$radiobutton = $_POST["radiobutton"] ?? [];
+$page_num_otdel_ins = $_POST["page_num_otdel_ins"] ?? [];
 
 ?>
 
@@ -155,7 +156,7 @@ print('<span class="menu3">Имя страницы:</span><input name="page_name_ins" type=
 
 
 //print('<textarea name="view_page_ins"  cols="100" rows="50">');   
-include('ed/examples/full11.html');
+if (is_file(__DIR__ . '/ed/examples/full11.html')) { include __DIR__ . '/ed/examples/full11.html'; } else { echo '<textarea name="view_page_ins" cols="100" rows="25"></textarea>'; }
 //print('</textarea>');   
 print('</form></td></tr></table>');
   }  
@@ -167,29 +168,29 @@ print ("<table width=1200 border='0' align=center cellpadding='0' cellspacing='0
 <tr><td align='left' class='zagl'  colspan='2'>Редактировать страницу:<span class='zaglc'></span></td></tr>
 <tr><td align='center'  colspan='2'>");
 	print('<form id="form1" action="main.php?work=2" method="post" valign="top">');
-	$connect=mysql_connect($host,$username,$passwd);
-$qr=mysql_query('SET NAMES cp1251');
+	$connect=Database::connect();
+$qr=Database::query('SET NAMES cp1251');
 
-$db=mysql_select_db($db_name);	
-$qr=mysql_query('SELECT * FROM richstone_page ORDER BY richstone_page_name');	
+$db=Database::selectDatabase($db_name);	
+$qr=Database::query('SELECT * FROM richstone_page ORDER BY richstone_page_name');	
 
 print('<br><select  name="list_page"> ');
-	while($res=mysql_fetch_row($qr))
+	while($res=Database::fetchRow($qr))
 {		
 print('<option>'.$res[1].'</option>');	
 }	
 print('</select>');
 
 
-$qr=mysql_query("SELECT * FROM richstone_page WHERE richstone_page_name='".$page_id."'");	
-$res=mysql_fetch_row($qr);	
+$qr=Database::query(Database::statement('SELECT * FROM richstone_page WHERE richstone_page_name=?', [($page_id)]));	
+$res=Database::fetchRow($qr) ?: array_fill(0, 32, '');	
 print('<input type="submit" id="sub1" value="Выбрать" class="butt">');	
 print('</form></td></tr>');	
 
 
 print('<tr><td colspan=2>');
-$qr=mysql_query("SELECT * FROM richstone_page WHERE richstone_page_view_flag=1 ORDER BY id DESC");
-$rsk=mysql_fetch_row($qr);
+$qr=Database::query("SELECT * FROM richstone_page WHERE richstone_page_view_flag=1 ORDER BY id DESC");
+$rsk=Database::fetchRow($qr);
 print('</td></tr>');
 
 
@@ -236,12 +237,12 @@ print('</td>
 </td></tr>');    
 
 print('<tr><td colspan="2">');    
-include('ed/examples/full1.html');
+if (is_file(__DIR__ . '/ed/examples/full1.html')) { include __DIR__ . '/ed/examples/full1.html'; } else { echo '<textarea name="view_page" cols="100" rows="25">'; }
 print($res[2]);    
 print('</textarea><br></form>');	
 print('</td><tr>');    
 print('</table>');	
-mysql_close($connect); 
+Database::close($connect); 
 }
 
 
@@ -258,9 +259,9 @@ if($work_id==3){
 print ("<table width=1200 border='0' align=center cellpadding='0' cellspacing='0' class='trans'>
 <tr><td colspan='7' align='left' class='zagl'>Менеджер страниц отдела - <span class='zaglc'>www.rw</span></td></tr></table>");
 print('<form id="form1" action="main.php?work=3" method="post" valign="top">');
-$connect=mysql_connect($host,$username,$passwd);
-$qr=mysql_query('SET NAMES cp1251');
-$db=mysql_select_db($db_name);	
+$connect=Database::connect();
+$qr=Database::query('SET NAMES cp1251');
+$db=Database::selectDatabase($db_name);	
 
 if ($action=="" || $action=="null") 
 {
@@ -282,11 +283,11 @@ if ($action=="" || $action=="null")
 <td align='center' class='textr'><b>Видимость</b></td>
 </tr>");
 
-$old = mysql_query("SELECT * FROM richstone_page ORDER BY id");
+$old = Database::query("SELECT * FROM richstone_page ORDER BY id");
 
  echo "<input type=hidden name='action' value='ok'><br>";
 
-while($row2 = mysql_fetch_row($old)) {   
+while($row2 = Database::fetchRow($old)) {   
 
 $tabl=$row2[0]-1;
 
@@ -316,20 +317,20 @@ $tabl=$row2[0]-1;
 <?php
 } 
 else {
-while ((list($idx,$val) = each($ar)) and (list($idx,$val) = each($am)) and (list($idx,$val) = each($ac)))
+while ((list($idx,$val) = next_form_item($ar)) and (list($idx,$val) = next_form_item($am)) and (list($idx,$val) = next_form_item($ac)))
 {
-     mysql_query("UPDATE richstone_page SET menu='".$ar[$idx]."',menu_num='".$am[$idx]."',alt_name='".$ac[$idx]."' WHERE id='$idx'")or die(mysql_error());
+     Database::query(Database::statement('UPDATE richstone_page SET menu=?,menu_num=?,alt_name=? WHERE id=?', [($ar[$idx]), ($am[$idx]), ($ac[$idx]), ($idx)]))or die(Database::error());
 header("Location: main.php?work=3");
 }
 }
-mysql_close($connect); 
+Database::close($connect); 
 
 }
 
 
 if($work_id==4){
 
-$sql = mysql_query("SELECT * FROM richstone_news ORDER BY id DESC");
+$sql = Database::query("SELECT * FROM richstone_news ORDER BY id DESC");
 print("
 <table width=1200 border='0' align=center cellpadding='0' cellspacing='0'>
 
@@ -356,7 +357,7 @@ print("
 <td align='center' class='textr' width='80'><b>Опер</b></td>
 <td align='center' class='textr' width='80'><b>Опер</b></td>
 </tr>");
-  while ($tablerows = mysql_fetch_row($sql))
+  while ($tablerows = Database::fetchRow($sql))
 {
 echo ("
 <tr><form action='savernews.php?code=".$tablerows["0"]."' method='post'>
@@ -370,7 +371,7 @@ echo ("
 }
 
   echo "</table>";
-mysql_close($connect); 
+Database::close($connect); 
 }
 
 
@@ -382,12 +383,12 @@ if($work_id==5){
 print ("<table width=1200 border='0' align=center cellpadding='0' cellspacing='0'  class='trans'>
 <tr><td colspan='7' align='left' class='zagl'>Справочник - <span class='zaglc'>Персонала</span></td></tr><tr><td align='left'>");
 print('<form id="form1" action="main.php?work=5" method="post" valign="top">');
-$connect=mysql_connect($host,$username,$passwd);
-$qr=mysql_query('SET NAMES cp1251');
-$db=mysql_select_db($db_name);	
-$qr=mysql_query('SELECT * FROM richstone_page WHERE key_menu=1 ORDER BY id');	
+$connect=Database::connect();
+$qr=Database::query('SET NAMES cp1251');
+$db=Database::selectDatabase($db_name);	
+$qr=Database::query('SELECT * FROM richstone_page WHERE key_menu=1 ORDER BY id');	
 print('<select  name="list_page">');	
-while($res=mysql_fetch_row($qr))
+while($res=Database::fetchRow($qr))
 {		
 print('<option>'.$res[1].'</option>');	
 }	
@@ -395,15 +396,15 @@ print('</select> ');
 
 
 
-$qr=mysql_query("SELECT * FROM richstone_page WHERE richstone_page_name='".$page_id."'");	
-$res=mysql_fetch_row($qr);
+$qr=Database::query(Database::statement('SELECT * FROM richstone_page WHERE richstone_page_name=?', [($page_id)]));	
+$res=Database::fetchRow($qr) ?: array_fill(0, 32, '');
 print('<input type="submit" id="sub1" value="Выбрать" class="butt">');	
 print('</form>');	 
 print ("</td></tr><tr><td class='zagl' align='left'>Выбран отдел - <span class='zaglc'>");    
 print ($res[1]);    
 print ("</span></td></tr></table>");    
 
-$sql = mysql_query("SELECT * FROM richstone_katalog WHERE key_page='".$res[6]."' ORDER BY key_num");
+$sql = Database::query(Database::statement('SELECT * FROM richstone_katalog WHERE key_page=? ORDER BY key_num', [($res[6])]));
   echo ("<table width=1200 border='0' align='center' cellpadding='0' cellspacing='0'bgcolor='ffffff'>");
   echo ("<tr>
 <td align='center' class='textr'><b>ID</b></td>
@@ -426,7 +427,7 @@ $sql = mysql_query("SELECT * FROM richstone_katalog WHERE key_page='".$res[6]."'
 </tr>");
 
 
-  while ($tablerows = mysql_fetch_row($sql))
+  while ($tablerows = Database::fetchRow($sql))
 {
 if (preg_match_all ("!src=\"(.*?)\"!si", $tablerows[21], $out))
 $v=$out[1][0];
@@ -538,7 +539,7 @@ print ("
 <tr><td valign='top' align=left><input type='hidden' value='3' name='ras'><p></td></tr>
 <tr><td valign='top' align=left><input type='submit' value='Сохранить' class='butt'><p></td></tr>
 </table></form>");
-mysql_close($connect); 
+Database::close($connect); 
 }
 
 
@@ -547,7 +548,7 @@ if($work_id==6){
 print ("<table width=1200 border='0' align=center cellpadding='0' cellspacing='0'>
 <tr><td colspan='7' align='left' class='zagl'>Пользователи ресурса - <span class='zaglc'>www.www.rw/tels/35</span></td></tr></table>");
 
-$sql = mysql_query("SELECT * FROM richstone_user ORDER BY id");
+$sql = Database::query("SELECT * FROM richstone_user ORDER BY id");
   echo ("<table width=1200 border='0' align=center cellpadding='2' cellspacing='0' bgcolor='#ffffff'>");
   echo ("<tr>
 <td align='center' class='textr'><b>№ ID</b></td>
@@ -561,7 +562,7 @@ $sql = mysql_query("SELECT * FROM richstone_user ORDER BY id");
 <td align='center' class='textr'><b>Операция</b></td>
 <td align='center' class='textr'><b>Операция</b></td>
 </tr>");
-  while ($tablerows = mysql_fetch_row($sql))
+  while ($tablerows = Database::fetchRow($sql))
 
 
 {
@@ -585,7 +586,7 @@ $tabl=$tablerows[0]-1;
 
   echo "</table>";
 
-mysql_close($connect); 
+Database::close($connect); 
 }
 ?>
 
@@ -597,8 +598,8 @@ mysql_close($connect);
 
 if($work_id==9){   
 
-$rest=mysql_query("select * from richstone_user order by id"); // Сразу выводим все строки БД чтобы видеть что добавили с единой формой.
-$rr=mysql_num_rows($rest);
+$rest=Database::query("select * from richstone_user order by id"); // Сразу выводим все строки БД чтобы видеть что добавили с единой формой.
+$rr=Database::numRows($rest);
 print ("<table width='1200' border='0' align=left cellpadding='0' cellspacing='0'>
 <tr><td align='left' class='zagl'>Рассылка новостей - <span class='zaglc'>www.www.rw/tels/35</span> / Всего - $rr пользователей </td></tr></table>");
 print ("<table width='1200' border='0' align=left cellpadding='0' cellspacing='0' class='textin'>
@@ -607,8 +608,8 @@ print ("<table width='1200' border='0' align=left cellpadding='0' cellspacing='0
  
 if (isset($_POST['submit']))
   {
-    $arr=$_POST["checks"];
-    $arrs=$_POST["value"];
+    $arr = $_POST["checks"] ?? '';
+    $arrs = $_POST["value"] ?? '';
     $len = sizeof($arr); 
     echo('Всего отправлено - '.$len); // чисто для себя смотрим сколько элементов к отправке
     echo ('<br>'.$page_user);
@@ -677,8 +678,8 @@ function output_err($num)
 } 
 }
 
-$res=mysql_query("select * from richstone_user order by id"); // Сразу выводим все строки БД чтобы видеть что добавили с единой формой.
-$rows=mysql_num_rows($res);
+$res=Database::query("select * from richstone_user order by id"); // Сразу выводим все строки БД чтобы видеть что добавили с единой формой.
+$rows=Database::numRows($res);
 if($rows>0)
    {
     echo('<form id="form4" name="form4" method="post" action="" enctype="multipart/form-data">');
@@ -690,16 +691,16 @@ $w=$tab/$cols2;
 
 echo "<table class='textin'  width='$tab' border='0' align=left cellpadding='0' cellspacing='0'><tr>";
  
-$result2 = mysql_query("SELECT * FROM richstone_user WHERE richstone_user_pr=1 order by id LIMIT 0 , $num2");
-$n = mysql_num_rows($result2); 
+$result2 = Database::query(Database::statement('SELECT * FROM richstone_user WHERE richstone_user_pr=1 order by id LIMIT 0 , ?', [(int)($num2)]));
+$n = Database::numRows($result2); 
 $m = $cols2 * ceil($n / $cols2);
 while($i < $m)
  {
  $i++; 
-//   mysql_data_seek($result2,$i);
-// $row = mysql_fetch_assoc($result2);
-   $ares=mysql_fetch_array($result2);
-// $res = mysql_fetch_array($result2);
+//   Database::seek($result2,$i);
+// $row = Database::fetchAssoc($result2);
+   $ares=Database::fetchArray($result2);
+// $res = Database::fetchArray($result2);
 $col=$i+1;
 
  if ($i <= $n){
@@ -749,7 +750,7 @@ print ("<table width='1200' border='0' align=left cellpadding='0' cellspacing='0
 </form>');
    }
 print ("</td></tr></table>");
-mysql_close($connect); 
+Database::close($connect); 
 }
 ?>
 
@@ -808,8 +809,8 @@ print ("</td></tr></table>");
 
 if($work_id==8){   
 
-$rest=mysql_query("select * from richstone_user order by id"); // Сразу выводим все строки БД чтобы видеть что добавили с единой формой.
-$rr=mysql_num_rows($rest);
+$rest=Database::query("select * from richstone_user order by id"); // Сразу выводим все строки БД чтобы видеть что добавили с единой формой.
+$rr=Database::numRows($rest);
 print ("<table width='1200' border='0' align=left cellpadding='0' cellspacing='0'>
 <tr><td align='left' class='zagl'>Рассылка новостей - <span class='zaglc'>www.www.rw/tels/35</span> / Всего - $rr пользователей </td></tr></table>");
 print ("<table width='1200' border='0' align=left cellpadding='0' cellspacing='0' class='textin'>
@@ -818,8 +819,8 @@ print ("<table width='1200' border='0' align=left cellpadding='0' cellspacing='0
  
 if (isset($_POST['submit']))
   {
-    $arr=$_POST["checks"];
-    $arrs=$_POST["value"];
+    $arr = $_POST["checks"] ?? '';
+    $arrs = $_POST["value"] ?? '';
     $len = sizeof($arr); 
     echo('Всего отправлено - '.$len); // чисто для себя смотрим сколько элементов к отправке
 
@@ -887,8 +888,8 @@ function output_err($num)
 } 
 }
 
-$res=mysql_query("select * from richstone_user order by id"); // Сразу выводим все строки БД чтобы видеть что добавили с единой формой.
-$rows=mysql_num_rows($res);
+$res=Database::query("select * from richstone_user order by id"); // Сразу выводим все строки БД чтобы видеть что добавили с единой формой.
+$rows=Database::numRows($res);
 if($rows>0)
    {
     echo('<form id="form4" name="form4" method="post" action="" enctype="multipart/form-data">');
@@ -900,16 +901,16 @@ $w=$tab/$cols2;
 
 echo "<table class='textin'  width='$tab' border='0' align=left cellpadding='0' cellspacing='0'><tr>";
  
-$result2 = mysql_query("SELECT * FROM richstone_user order by id LIMIT 0 , $num2");
-$n = mysql_num_rows($result2); 
+$result2 = Database::query(Database::statement('SELECT * FROM richstone_user order by id LIMIT 0 , ?', [(int)($num2)]));
+$n = Database::numRows($result2); 
 $m = $cols2 * ceil($n / $cols2);
 while($i < $m)
  {
  $i++; 
-//   mysql_data_seek($result2,$i);
-// $row = mysql_fetch_assoc($result2);
-   $ares=mysql_fetch_array($result2);
-// $res = mysql_fetch_array($result2);
+//   Database::seek($result2,$i);
+// $row = Database::fetchAssoc($result2);
+   $ares=Database::fetchArray($result2);
+// $res = Database::fetchArray($result2);
 $col=$i+1;
 
  if ($i <= $n){
@@ -951,7 +952,7 @@ print ("<table width='1200' border='0' align=left cellpadding='0' cellspacing='0
 </form>');
    }
 print ("</td></tr></table>");
-mysql_close($connect); 
+Database::close($connect); 
 }
 ?>
 
@@ -984,12 +985,12 @@ if($work_id==7){
 print ("<table width=1200 border='0' align=center cellpadding='0' cellspacing='0' class='trans'>
 <tr><td colspan='7' align='left' class='zagl'>Справочник - <span class='zaglc'>Глобальное редактирование Персонала</span></td></tr><tr><td align='left'>");
 print('<form id="form1" action="main.php?work=7" method="post" valign="top">');
-$connect=mysql_connect($host,$username,$passwd);
-$qr=mysql_query('SET NAMES cp1251');
-$db=mysql_select_db($db_name);	
-$qr=mysql_query('SELECT * FROM richstone_page WHERE key_menu=1 ORDER BY id');	
+$connect=Database::connect();
+$qr=Database::query('SET NAMES cp1251');
+$db=Database::selectDatabase($db_name);	
+$qr=Database::query('SELECT * FROM richstone_page WHERE key_menu=1 ORDER BY id');	
 print('<select  name="list_page">');	
-while($res=mysql_fetch_row($qr))
+while($res=Database::fetchRow($qr))
 {		
 print('<option>'.$res[1].'</option>');	
 }	
@@ -997,8 +998,8 @@ print('</select> ');
 
 
 
-$qr=mysql_query("SELECT * FROM richstone_page WHERE richstone_page_name='".$page_id."'");	
-$res=mysql_fetch_row($qr);
+$qr=Database::query(Database::statement('SELECT * FROM richstone_page WHERE richstone_page_name=?', [($page_id)]));	
+$res=Database::fetchRow($qr) ?: array_fill(0, 32, '');
 print('<input type="submit" id="sub1" value="Выбрать" class="butt">');	
 print('</form>');	 
 print ("</td></tr><tr><td class='zagl' align='left'>Выбран - <span class='zaglc'>");    
@@ -1031,13 +1032,13 @@ if ($action=="" || $action=="null")
 <td align='center' class='textr'><b>Превью фото</b></td>
 </tr>
 <?php
-//$old = mysql_query("SELECT id,cod,date,information,opis,coll,prev,key_num,key_i,key_page FROM richstone_katalog WHERE key_page='".$res[6]."' ORDER BY key_num");
-$old = mysql_query("SELECT * FROM richstone_katalog WHERE key_page='".$res[6]."' ORDER BY num_otdel");
+//$old = Database::query("SELECT id,cod,date,information,opis,coll,prev,key_num,key_i,key_page FROM richstone_katalog WHERE key_page='".$res[6]."' ORDER BY key_num");
+$old = Database::query(Database::statement('SELECT * FROM richstone_katalog WHERE key_page=? ORDER BY num_otdel', [($res[6])]));
 $date_today = date("d.m.Y"); //присвоено 03.12.01
 
  echo "<input type=hidden name='action' value='ok'><br>";
 
-while($row2 = mysql_fetch_row($old)) {   
+while($row2 = Database::fetchRow($old)) {   
 
  echo "<TR>
 
@@ -1084,14 +1085,14 @@ while($row2 = mysql_fetch_row($old)) {
 <?php
 } 
 else {
-while ((list($idx,$val) = each($page_lname_ins)) and (list($idx,$val) = each($page_fname_ins)) and (list($idx,$val) = each($page_name_ins)) and (list($idx,$val) = each($page_user_ins)) and (list($idx,$val) = each($page_email_ins)) and (list($idx,$val) = each($page_otdel_ins)) and (list($idx,$val) = each($page_office_ins)) and (list($idx,$val) = each($page_key_page_ins1)) and (list($idx,$val) = each($page_tel_ins)) and (list($idx,$val) = each($page_adress_ins)) and (list($idx,$val) = each($page_date_ins)) and (list($idx,$val) = each($radiobutton)) and (list($idx,$val) = each($page_num_otdel_ins)))
+while ((list($idx,$val) = next_form_item($page_lname_ins)) and (list($idx,$val) = next_form_item($page_fname_ins)) and (list($idx,$val) = next_form_item($page_name_ins)) and (list($idx,$val) = next_form_item($page_user_ins)) and (list($idx,$val) = next_form_item($page_email_ins)) and (list($idx,$val) = next_form_item($page_otdel_ins)) and (list($idx,$val) = next_form_item($page_office_ins)) and (list($idx,$val) = next_form_item($page_key_page_ins1)) and (list($idx,$val) = next_form_item($page_tel_ins)) and (list($idx,$val) = next_form_item($page_adress_ins)) and (list($idx,$val) = next_form_item($page_date_ins)) and (list($idx,$val) = next_form_item($radiobutton)) and (list($idx,$val) = next_form_item($page_num_otdel_ins)))
 {                                                                                                                                                                                                                                                                                                                                                                                                                                                  
-     mysql_query("UPDATE richstone_katalog SET lname='".$page_lname_ins[$idx]."', fname='".$page_fname_ins[$idx]."', name='".$page_name_ins[$idx]."', user='".$page_user_ins[$idx]."', email='".$page_email_ins[$idx]."', otdel='".$page_otdel_ins[$idx]."', office='".$page_office_ins[$idx]."', key_page='".$page_key_page_ins1[$idx]."', tel='".$page_tel_ins[$idx]."', adress='".$page_adress_ins[$idx]."', date='".$page_date_ins[$idx]."', radiobutton='".$radiobutton[$idx]."', num_otdel='".$page_num_otdel_ins[$idx]."' WHERE id='$idx'")or die(mysql_error());
+     Database::query(Database::statement('UPDATE richstone_katalog SET lname=?, fname=?, name=?, user=?, email=?, otdel=?, office=?, key_page=?, tel=?, adress=?, date=?, radiobutton=?, num_otdel=? WHERE id=?', [($page_lname_ins[$idx]), ($page_fname_ins[$idx]), ($page_name_ins[$idx]), ($page_user_ins[$idx]), ($page_email_ins[$idx]), ($page_otdel_ins[$idx]), ($page_office_ins[$idx]), ($page_key_page_ins1[$idx]), ($page_tel_ins[$idx]), ($page_adress_ins[$idx]), ($page_date_ins[$idx]), ($radiobutton[$idx]), ($page_num_otdel_ins[$idx]), ($idx)]))or die(Database::error());
 
 header("Location: main.php?work=7");
 }
 }
-mysql_close($connect); 
+Database::close($connect); 
 }
 ?>
 
@@ -1105,74 +1106,74 @@ if($work_id==10){
 print ("<table width=1100 border='0' align=center cellpadding='0' cellspacing='0'>
 <tr><td colspan='7' align='left' class='zagl'>Менеджер редактирования меню - <span class='zaglc'>www.rw</span>");
 
-$sql = mysql_query("SELECT * FROM rishstone_page ORDER BY id");
+$sql = Database::query("SELECT * FROM rishstone_page ORDER BY id");
   echo ("<table width=1100 border='0' align=center cellpadding='2' cellspacing='0' class='textin'><tr><td align='center'>");
 
 
 $GLOBAL_TABLE = 'menu';
 $GLOBAL_FILE = 'main.php?work=10';
 $dbpf = 'tb'; // префикс таблиц prefix_menu если оставить пусто имя таблицы должно быть _menu
-$sql=mysql_query('set names cp1251');  
+$sql=Database::query('set names cp1251');  
 if (isset($_GET['des'])){ //___________________________________БЛОК ОБРАБОТКИ ДЕЙСТВИЙ
 	if ($_GET['des'] == 'edit') echo edit_table($_GET['id']);//РЕДАКТИРОВАНИЕ МЕНЮ
 	if ($_GET['des'] == 'add') echo edit_table();//____________ДОБАВЛЕНИЕ МЕНЮ
 	if ($_GET['des'] == 'st') {
-		$sql = 'UPDATE '.$dbpf.'_'.$GLOBAL_TABLE.' SET status='.$_GET['st'].' WHERE id = '.$_GET['id'].'';
-		$qur = mysql_query($sql);
+		$sql = Database::statement('UPDATE ' . Database::identifier($dbpf) . '_' . Database::identifier($GLOBAL_TABLE) . ' SET status=? WHERE id = ?', [(int)($_GET['st']), (int)($_GET['id'])]);
+		$qur = Database::query($sql);
 //if ($qur) echo '<font color="GREEN">Пункт меню успешно изменен.</font>';
 //else echo '<font color="RED">Пункт меню не изменен. Ошибка БД.</font>';
 		echo show_table();
 	}
 	if ($_GET['des'] == 'up') {//______________________________ИЗМЕНЕНИЕ ПОЗИЦИИ МЕНЮ
-		$sql = 'UPDATE '.$dbpf.'_'.$GLOBAL_TABLE.' SET pos=pos-1 WHERE id = '.$_GET['id'].'';
-		$qur = mysql_query($sql);
+		$sql = Database::statement('UPDATE ' . Database::identifier($dbpf) . '_' . Database::identifier($GLOBAL_TABLE) . ' SET pos=pos-1 WHERE id = ?', [(int)($_GET['id'])]);
+		$qur = Database::query($sql);
 		if ($qur) echo '<h3>Пункт меню успешно изменен.</h3>';
 		else echo '<font color="RED">Пункт меню не изменен. Ошибка БД.</font>';
 		echo show_table();
 	}
 	if ($_GET['des'] == 'down') {//____________________________
-		$sql = 'UPDATE '.$dbpf.'_'.$GLOBAL_TABLE.' SET pos=pos+1 WHERE id = '.$_GET['id'].'';
-		$qur = mysql_query($sql);
+		$sql = Database::statement('UPDATE ' . Database::identifier($dbpf) . '_' . Database::identifier($GLOBAL_TABLE) . ' SET pos=pos+1 WHERE id = ?', [(int)($_GET['id'])]);
+		$qur = Database::query($sql);
 		if ($qur) echo '<h3>Пункт меню успешно изменен.</h3>';
 		else echo '<font color="RED">Пункт меню не изменен. Ошибка БД.</font>';
 		echo show_table();
 	}
 	if ($_GET['des'] == 'delete') {//__________________________УДАЛЕНИЕ МЕНЮ
-		$sql = 'DELETE FROM '.$dbpf.'_'.$GLOBAL_TABLE.' WHERE id = '.$_GET['id'].'';
-		$qur = mysql_query($sql);
+		$sql = Database::statement('DELETE FROM ' . Database::identifier($dbpf) . '_' . Database::identifier($GLOBAL_TABLE) . ' WHERE id = ?', [(int)($_GET['id'])]);
+		$qur = Database::query($sql);
 		if ($qur) echo '<h3>Пункт меню успешно удален.</h3>';
 		else echo '<font color="RED">Пункт меню не удален. Ошибка БД.</font>';
 		echo show_table();
 	}
 }else{
 	if (isset($_POST['edit'])) {//_____________________________РЕДАКТИРОВАНИЕ МЕНЮ - СОХРАНЕНИЕ В БД
-		$page = $_POST['page'];
-		$id = $_POST['id'];
-		$par = $_POST['par'];
+		$page = $_POST['page'] ?? '';
+		$id = $_POST['id'] ?? '';
+		$par = $_POST['par'] ?? '';
 		$pos = (int)$_POST['pos'];
-		$name = addslashes($_POST['name']);
+		$name = ($_POST['name'] ?? '');
 		if (isset($_POST['status'])) $status = 1; else $status=0;
-		$sql = 'UPDATE '.$dbpf.'_'.$GLOBAL_TABLE.' SET pos = '.$pos.',name="'.$name.'",par='.$par.',status='.$status.',page='.$page.' WHERE id = '.$id.'';
-		$qur = mysql_query($sql);
+		$sql = Database::statement('UPDATE ' . Database::identifier($dbpf) . '_' . Database::identifier($GLOBAL_TABLE) . ' SET pos = ?,name=?,par=?,status=?,page=? WHERE id = ?', [(int)($pos), ($name), (int)($par), (int)($status), (int)($page), (int)($id)]);
+		$qur = Database::query($sql);
 		if ($qur) echo '<h3>Пункт меню успешно изменен.</font>';
 		else echo '<font color="RED">Пункт меню не изменен. Ошибка БД.</font>';
 	}
 	if (isset($_POST['add'])) {//______________________________ДОБАВЛЕНИЕ МЕНЮ - СОХРАНЕНИЕ В БД
-		$page = addslashes($_POST['page']);
-		$name = addslashes($_POST['name']);
-		$par = addslashes($_POST['par']);
-		$pos = (int)addslashes($_POST['pos']); if ($_POST['pos']=='') $pos=0;
+		$page = ($_POST['page'] ?? '');
+		$name = ($_POST['name'] ?? '');
+		$par = ($_POST['par'] ?? '');
+		$pos = (int)($_POST['pos'] ?? ''); if ($_POST['pos']=='') $pos=0;
 		if (isset($_POST['status'])) $status = 1; else $status=0;
-		$sql = 'INSERT INTO '.$dbpf.'_'.$GLOBAL_TABLE.' VALUE (0,"'.$name.'",'.$par.','.$pos.','.$status.','.$page.')';
-		$qur = mysql_query($sql);
+		$sql = Database::statement('INSERT INTO ' . Database::identifier($dbpf) . '_' . Database::identifier($GLOBAL_TABLE) . ' (id,name,par,pos,status,page,link,chek) VALUES (0,?,?,?,?,?,\'\',\'0\')', [($name), (int)($par), (int)($pos), (int)($status), (int)($page)]);
+		$qur = Database::query($sql);
 		if ($qur) echo '<h3>Пункт меню успешно добавлен.</h3>';
-		else echo '<font color="RED">Пункт меню не добавлен. Ошибка БД.</font>'.$sql.mysql_error();
+		else echo '<font color="RED">Пункт меню не добавлен. Ошибка БД.</font>'.Database::error();
 	}
 	if (isset($_POST['edit_group'])){//________________________ГРУППОВОЕ УДАЛЕНИЕ МЕНЮ
 		if (isset($_POST['del'])){
 			foreach ($_POST['del'] as $key => $val){
-				$sql = 'DELETE FROM '.$dbpf.'_'.$GLOBAL_TABLE.' WHERE id='.$key.'';
-				$qur = mysql_query($sql); 
+				$sql = Database::statement('DELETE FROM ' . Database::identifier($dbpf) . '_' . Database::identifier($GLOBAL_TABLE) . ' WHERE id=?', [(int)($key)]);
+				$qur = Database::query($sql); 
 			}
 		}
 	}
@@ -1184,9 +1185,9 @@ if (isset($_GET['des'])){ //___________________________________БЛОК ОБРАБОТКИ ДЕ
 function edit_table($id=0){//__________________________________ДОБАВЛЕНИЕ/РЕДАКТИРОВАНИЕ ПУНКТА МЕНЮ
 GLOBAL $GLOBAL_TABLE,$GLOBAL_FILE,$dbpf;	$out = '';
 	if ($id){
-		$sql = 'SELECT * FROM '.$dbpf.'_'.$GLOBAL_TABLE.' WHERE id = '.$id.'';
-		$qur = mysql_query($sql);
-		$rez = mysql_fetch_assoc($qur);
+		$sql = Database::statement('SELECT * FROM ' . Database::identifier($dbpf) . '_' . Database::identifier($GLOBAL_TABLE) . ' WHERE id = ?', [(int)($id)]);
+		$qur = Database::query($sql);
+		$rez = Database::fetchAssoc($qur);
 		$regim = 'Редактирование меню';
 		$button = '<input type="HIDDEN" name="id" value="'.$id.'"><input type="SUBMIT" name="edit" value="Изменить">';
 	}else{
@@ -1209,8 +1210,8 @@ GLOBAL $GLOBAL_TABLE,$GLOBAL_FILE,$dbpf;	$out = '';
 <td>';
 	$out .= '<select name="page" style="width:98%">';
 
-$qr=mysql_query('SELECT * FROM richstone_page WHERE richstone_page_view_flag=1 ORDER BY richstone_page_name');
-while($res=mysql_fetch_row($qr)) {
+$qr=Database::query('SELECT * FROM richstone_page WHERE richstone_page_view_flag=1 ORDER BY richstone_page_name');
+while($res=Database::fetchRow($qr)) {
 	$out .= '<option value='.$res[0].'>'.$res[1].'</option>';
 	                         }
 	$out .= '</select>';
@@ -1245,10 +1246,10 @@ GLOBAL $GLOBAL_TABLE,$dbpf; $out = '';
 
 function show_cat($par=0,$old=0){
   global $dbpf,$GLOBAL_TABLE,$lev; $out = ''; $lev++;
-	$sql = "SELECT * FROM ".$dbpf."_".$GLOBAL_TABLE." WHERE par=".$par." ORDER BY pos";
-	$qur = mysql_query($sql); $kol = mysql_num_rows($qur);
+	$sql = Database::statement('SELECT * FROM ' . Database::identifier($dbpf) . '_' . Database::identifier($GLOBAL_TABLE) . ' WHERE par=? ORDER BY pos', [(int)($par)]);
+	$qur = Database::query($sql); $kol = Database::numRows($qur);
 	if ($qur && $kol){
-		while($rez = mysql_fetch_assoc($qur)){
+		while($rez = Database::fetchAssoc($qur)){
 			if ($rez['par'] == 0){ $str_s='<b>';$str_e='</b>'; $bg_c='#E8E8E8';}
 			else { $str_s='';$str_e=''; $bg_c='#fff3f3'; }
 			$out .= '<tr bgcolor="'.$bg_c.'" align="left">';
@@ -1295,11 +1296,11 @@ function sel_cat($name,$par=0){
 
 
 
-function sel_cat_r($par=0,$old=0,$id){
+function sel_cat_r($par=0,$old=0,$id=0){
   global $dbpf,$GLOBAL_TABLE,$lev; $out = ''; $lev++;
-	$sql = "SELECT * FROM ".$dbpf."_".$GLOBAL_TABLE." WHERE par=".$par." ORDER BY pos, name ASC";
-	$qur = mysql_query($sql);
-	while($rez = mysql_fetch_assoc($qur)){
+	$sql = Database::statement('SELECT * FROM ' . Database::identifier($dbpf) . '_' . Database::identifier($GLOBAL_TABLE) . ' WHERE par=? ORDER BY pos, name ASC', [(int)($par)]);
+	$qur = Database::query($sql);
+	while($rez = Database::fetchAssoc($qur)){
 	  if ($rez['par'] == $old) $old--;
 	  $out .= '<option value="'.$rez['id'].'"'; if ($rez['id'] == $id) $out .= ' SELECTED'; $out .= '>';
 	  for($i=0;$i<=$lev;$i++) $out .= '--';  $out .= $rez['name'].'</option>';
@@ -1323,11 +1324,11 @@ function sel_cat1($name,$par=0){
   return $out;
 }
 
-function sel_cat_r1($par=0,$old=0,$id){
+function sel_cat_r1($par=0,$old=0,$id=0){
   global $dbpf,$GLOBAL_TABLE,$lev; $out = ''; $lev++;
-	$sql = "SELECT * FROM ".$dbpf."_".$GLOBAL_TABLE." WHERE par=".$par." ORDER BY pos, name ASC";
-	$qur = mysql_query($sql);
-	while($rez = mysql_fetch_assoc($qur)){
+	$sql = Database::statement('SELECT * FROM ' . Database::identifier($dbpf) . '_' . Database::identifier($GLOBAL_TABLE) . ' WHERE par=? ORDER BY pos, name ASC', [(int)($par)]);
+	$qur = Database::query($sql);
+	while($rez = Database::fetchAssoc($qur)){
 	  if ($rez['par'] == $old) $old--;
 	  $out .= '<option value="'.$rez['id'].'"'; if ($rez['id'] == $id) $out .= ' SELECTED'; $out .= '>';
 	  for($i=0;$i<=$lev;$i++) $out .= '--';  $out .= $rez['name'].'</option>';

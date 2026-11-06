@@ -1,30 +1,31 @@
-<?php 
+<?php
+require_once __DIR__ . '/src/bootstrap.php'; 
 
     include("db.php");
-    $connect=mysql_connect($host,$username,$passwd);
-    $db=mysql_select_db($db_name);	
+    $connect=Database::connect();
+    $db=Database::selectDatabase($db_name);	
 
-$ipus=$_SERVER["REMOTE_ADDR"];
+$ipus = $_SERVER["REMOTE_ADDR"] ?? '';
 preg_match("/^[0-9]{1,3}[\\.][0-9]{1,3}[\\.]/",$ipus,$ip_clear);
 echo $ip_clear[0];
 $ip=$ip_clear[0];
 
 echo "<br>";
-     if ($ip == "10.1."){$sql=mysql_query("SELECT * FROM pogoda WHERE 6days=26850");}
+     if ($ip == "10.1."){$sql=Database::query("SELECT * FROM pogoda WHERE 6days=26850");}
                                
-else if ($ip == "10.2."){$sql=mysql_query("SELECT * FROM pogoda WHERE 6days=26941");}
+else if ($ip == "10.2."){$sql=Database::query("SELECT * FROM pogoda WHERE 6days=26941");}
 
-else if ($ip == "10.3."){$sql=mysql_query("SELECT * FROM pogoda WHERE 6days=33008");}
+else if ($ip == "10.3."){$sql=Database::query("SELECT * FROM pogoda WHERE 6days=33008");}
 
-else if ($ip == "10.4."){$sql=mysql_query("SELECT * FROM pogoda WHERE 6days=33041");}
+else if ($ip == "10.4."){$sql=Database::query("SELECT * FROM pogoda WHERE 6days=33041");}
 
-else if ($ip == "10.5."){$sql=mysql_query("SELECT * FROM pogoda WHERE 6days=26863");}
+else if ($ip == "10.5."){$sql=Database::query("SELECT * FROM pogoda WHERE 6days=26863");}
 
-else if ($ip == "10.6."){$sql=mysql_query("SELECT * FROM pogoda WHERE 6days=26666");}
+else if ($ip == "10.6."){$sql=Database::query("SELECT * FROM pogoda WHERE 6days=26666");}
 
-else {$sql=mysql_query("SELECT * FROM pogoda");}
+else {$sql=Database::query("SELECT * FROM pogoda");}
 
-$newss=mysql_fetch_row($sql);
+$newss=Database::fetchRow($sql);
 echo "<table><tr><td>".$newss[1]."</td><td class='spis7' align='right'>По данным pogoda.by</td></tr>";
 echo "<tr><td colspan='2'>";
 
@@ -32,9 +33,9 @@ echo $newss[2];
 echo "</td></tr>";
 echo "<tr><td colspan='2'>";
 
-$sql=mysql_query("SELECT * FROM pogoda");
+$sql=Database::query("SELECT * FROM pogoda");
 
-while ($newss = mysql_fetch_row($sql))
+while ($newss = Database::fetchRow($sql))
 {
 echo "<a class='spis5' href='index.php?link=89&pogoda=".$newss[0]."'>".$newss[1]."</a> ";
 }
@@ -46,7 +47,7 @@ echo "</td></tr></table>";
 
 <?php 
 
-//$ip=$_SERVER["REMOTE_ADDR"];
+//$ip = $_SERVER["REMOTE_ADDR"] ?? '';
 
 //echo $ip;
 

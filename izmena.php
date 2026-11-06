@@ -1,20 +1,21 @@
-<?php 
+<?php
+require_once __DIR__ . '/src/bootstrap.php'; 
     include("db.php");
-    $connect=mysql_connect($host,$username,$passwd);
-    $db=mysql_select_db($db_name);	
+    $connect=Database::connect();
+    $db=Database::selectDatabase($db_name);	
 
 $datkon=date("d-m-Y");
 $datkon1=strtotime($datkon);
 
 $datko=date("H:i:s");
 $datko1=strtotime($datko);
-$sum=$datkon1+$tatko1;
+$sum = $datkon1;
 $sec=0;
 
-//$sql=mysql_query("(SELECT date, richstone_page_name, dt, id, izmena, alt_name, securit FROM richstone_page WHERE dt>=$sum) union (SELECT date, news, dt, id, key_news, newsrash1, securit FROM news WHERE dt>=$sum) order by dt DESC LIMIT 11 ");
-$sql=mysql_query("(SELECT date, richstone_page_name, dt, id, izmena, alt_name, securit FROM richstone_page WHERE dt>=$sum AND securit<1) union (SELECT date, news, dt, id, key_news, newsrash1, securit FROM news WHERE dt>=$sum) order by dt DESC LIMIT 14 ");
+//$sql=Database::query("(SELECT date, richstone_page_name, dt, id, izmena, alt_name, securit FROM richstone_page WHERE dt>=$sum) union (SELECT date, news, dt, id, key_news, newsrash1, securit FROM news WHERE dt>=$sum) order by dt DESC LIMIT 11 ");
+$sql=Database::query(Database::statement('(SELECT date, richstone_page_name, dt, id, izmena, alt_name, securit FROM richstone_page WHERE dt>=? AND securit<1) union (SELECT date, news, dt, id, key_news, newsrash1, securit FROM news WHERE dt>=?) order by dt DESC LIMIT 14', [$sum, $sum]));
 
-while ($newss = mysql_fetch_row($sql))
+while ($newss = Database::fetchRow($sql))
 {
 
 //$datko1=strtotime($newss[2]);

@@ -1,12 +1,13 @@
 
 
 <?php
+require_once __DIR__ . '/src/bootstrap.php';
 /********************************************************************
  * Подключение к базе
  ********************************************************************/
-mysql_connect("localhost", "root", "web2012irc") or die("Ошибка MySQL");
-mysql_select_db("telephone") or die("Ошибка БД");
-mysql_query("SET NAMES cp1251");
+Database::connect() or die("Ошибка MySQL");
+Database::selectDatabase(Database::setting('DB_NAME', 'telephone')) or die("Ошибка БД");
+Database::query("SET NAMES cp1251");
 
 /********************************************************************
  * Сохранение порядка из формы админки
@@ -19,11 +20,7 @@ if (isset($post['save']) && isset($post['order'])) {
         $id = intval($id);
         $pp = intval($pp); // это и есть твой $pp
 
-        mysql_query("
-            UPDATE richstone_page
-            SET menu_num = ".$pp."
-            WHERE id = ".$id."
-        ");
+        Database::query(Database::statement('UPDATE richstone_page SET menu_num = ? WHERE id = ?', [$pp, $id]));
     }
 
     header("Location: ppp.php");
@@ -33,7 +30,7 @@ if (isset($post['save']) && isset($post['order'])) {
 /********************************************************************
  * Выборка страниц
  ********************************************************************/
-$q = mysql_query("
+$q = Database::query("
     SELECT id,
            richstone_page_name,
            richstone_page_source,
@@ -71,8 +68,8 @@ th, td { border: 1px solid #888; padding: 4px 6px; }
 </tr>
 
 <?php
-mysql_data_seek($q, 0);
-while ($row = mysql_fetch_array($q)) {
+Database::seek($q, 0);
+while ($row = Database::fetchArray($q)) {
 ?>
 <tr>
     <td><?php echo $row['id']; ?></td>
@@ -95,14 +92,14 @@ while ($row = mysql_fetch_array($q)) {
 <h3>Вывод меню (используем $pp и menu_num)</h3>
 
 <?php
-mysql_data_seek($q, 0);
+Database::seek($q, 0);
 $pp = 1;   // ? вот твой порядковый номер
 
-while ($row = mysql_fetch_array($q)) {
+while ($row = Database::fetchArray($q)) {
 
     // считаем количество элементов каталога
-    $rr = mysql_query("SELECT id FROM richstone_katalog WHERE key_page = ".$row['key_menu']);
-    $count = mysql_num_rows($rr);
+    $rr = Database::query(Database::statement('SELECT id FROM richstone_katalog WHERE key_page = ?', [(int)($row['key_menu'])]));
+    $count = Database::numRows($rr);
 
     echo $pp.". <a href='index.php?link=".$row['richstone_page_source']."' class='zag'>"
          .$row['richstone_page_name']

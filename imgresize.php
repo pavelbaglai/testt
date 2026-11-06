@@ -1,4 +1,5 @@
 <?php
+require_once __DIR__ . '/src/bootstrap.php';
 
 function img_resize($src, $dest, $width, $height, $rgb=0xFFFFFF, $quality=100)
 {

@@ -1,0 +1,36 @@
+name: testt-dev
+services:
+  db:
+    image: mariadb:10.11
+    environment:
+      MARIADB_ROOT_PASSWORD: local-root-only
+      MARIADB_DATABASE: telephone
+      MARIADB_USER: testt
+      MARIADB_PASSWORD: local-dev-only
+    volumes:
+      - db_data:/var/lib/mysql
+    healthcheck:
+      test: [CMD, healthcheck.sh, --connect, --innodb_initialized]
+      interval: 2s
+      timeout: 5s
+      retries: 60
+  web:
+    image: testt-php83-dev
+    build: .
+    working_dir: /app
+    environment:
+      DB_HOST: db
+      DB_PORT: '3306'
+      DB_NAME: telephone
+      DB_USER: testt
+      DB_PASSWORD: local-dev-only
+      DB_CHARSET: cp1251
+    volumes:
+      - .:/app
+    ports:
+      - '127.0.0.1:8080:8080'
+    depends_on:
+      db:
+        condition: service_healthy
+volumes:
+  db_data:

@@ -16,23 +16,24 @@
 	<body onload="javascript:printdoc();">
 
 <?php
+require_once __DIR__ . '/src/bootstrap.php';
 
 
-$id = $_GET['code'];
+$id = $_GET['code'] ?? '';
 
 
 include("db.php");    		
 
 $time=date("d-m-Y");
 
-$qr=mysql_query('SELECT * FROM richstone_page where id='.$id);
-$res=mysql_fetch_row($qr); 
+$qr=Database::query(Database::statement('SELECT * FROM richstone_page where id=?', [(int)($id)]));
+$res=Database::fetchRow($qr); 
 
 echo "
 <h5>$res[2]</h5>&nbsp;&nbsp;&nbsp;Справочник составлен по состоянию на  $time";
 
 
-$sql = mysql_query("SELECT * FROM richstone_katalog where key_page=$res[6] order by num_otdel ASC");
+$sql = Database::query(Database::statement('SELECT * FROM richstone_katalog where key_page=? order by num_otdel ASC', [(int)($res[6])]));
 
 echo ('
 <table cellpadding="0" cellspacing="0" border="0" width="1000">
@@ -58,7 +59,7 @@ echo ("
 <td align='center' class='spisz' width='65'>Сот тел</td>
 <td align='center' class='spisz' width='50'>Отдел</td>
 <td align='center' class='spisz' width='110'>Адрес</td></tr>");
- for ($i=1; $i<($tablerows = mysql_fetch_row($sql)); $i++) 
+ for ($i=1; $i<($tablerows = Database::fetchRow($sql)); $i++) 
 {
 
 
