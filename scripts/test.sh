@@ -1,7 +1,8 @@
 #!/bin/sh
 set -eu
 cd "$(dirname "$0")/.."
-docker compose exec -T web sh -c 'set -eu; for file in *.php* src/*.php tests/*.php; do php -l "$file" > /dev/null; done; echo "PHP syntax: PASS"'
+docker compose exec -T web sh -c 'set -eu; for file in *.php* src/*.php tests/*.php config/*.php scripts/check-runtime.php; do php -l "$file" > /dev/null; done; echo "PHP syntax: PASS"'
+docker compose exec -T web php tests/configuration.php
 started=$(date -u +%Y-%m-%dT%H:%M:%SZ)
 docker compose exec -T -e TESTT_TEST_DATABASE=1 web php tests/integration.php
 logfile=$(mktemp)

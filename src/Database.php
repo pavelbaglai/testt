@@ -8,11 +8,43 @@ final class Database
     private static ?PDO $current = null;
     private static array $connections = [];
     private static string $lastError = '';
+    private static ?array $localSettings = null;
 
     public static function setting(string $name, string $default = ''): string
     {
         $value = getenv($name);
-        return $value === false ? $default : $value;
+        if ($value !== false) {
+            return $value;
+        }
+        if (self::$localSettings === null) {
+            $path = getenv('TESTT_DB_CONFIG');
+            $explicitPath = $path !== false && $path !== '';
+            $path = $explicitPath ? $path : dirname(__DIR__) . '/config/database.local.php';
+            $loaded = [];
+            if (is_file($path)) {
+                if (!is_readable($path)) {
+                    throw new RuntimeException('Database configuration file is not readable');
+                }
+                $settings = (static fn (string $file) => require $file)($path);
+                if (!is_array($settings)) {
+                    throw new RuntimeException('Database configuration must return an array');
+                }
+                $allowed = ['DB_HOST', 'DB_PORT', 'DB_NAME', 'DB_USER', 'DB_PASSWORD',
+                    'DB_CHARSET', 'DB_STAT_NAME', 'DB_TRAIN_NAME'];
+                foreach ($allowed as $key) {
+                    if (array_key_exists($key, $settings)) {
+                        if (!is_string($settings[$key]) && !is_int($settings[$key])) {
+                            throw new RuntimeException('Database settings must be strings or integers');
+                        }
+                        $loaded[$key] = (string)$settings[$key];
+                    }
+                }
+            } elseif ($explicitPath) {
+                throw new RuntimeException('Database configuration file does not exist');
+            }
+            self::$localSettings = $loaded;
+        }
+        return self::$localSettings[$name] ?? $default;
     }
 
     public static function connect(?string $database = null, ?string $charset = null): PDO
