@@ -1,4 +1,5 @@
 <?php
+require_once __DIR__ . '/src/bootstrap.php';
 
 // пример строит список городов по начальным буквам и выбирает из него
 
@@ -24,7 +25,7 @@ else{
 
         LIKE CONCAT("'.strtolower($city).'","%") LIMIT 5');
 
-   while($row = mysql_fetch_array($res)){
+   while($row = Database::fetchArray($res)){
 
     $r=($row['area']?'area':'country');
 
@@ -34,7 +35,7 @@ else{
 
         }
 
-   mysql_close();
+   Database::close();
 
    die;
 

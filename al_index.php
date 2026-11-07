@@ -6,9 +6,10 @@
       
         </style>
 <?php
+require_once __DIR__ . '/src/bootstrap.php';
 
-		mysql_connect('localhost','root',''); 
-		mysql_select_db('telephone');		
+		Database::connect(); 
+		Database::selectDatabase(Database::setting('DB_NAME', 'telephone'));		
 		$dbpf = 'tb'; // ??????? ?????? prefix_menu ???? ???????? ????? ??? ??????? ?????? ???? _menu
 
 
@@ -18,18 +19,18 @@ echo show_cat(0,0) ;
 echo '</div>';
 function show_cat($par=0,$old=1){
   global $dbpf,$lev; $out = ''; $lev++;
-        $sql=mysql_query('set names cp1251');  
+        $sql=Database::query('set names cp1251');  
 
  $count=0;
  $kol=0;
-	$sql = "SELECT * FROM ".$dbpf."_menu WHERE par=".$par." ORDER BY pos";
-	$qur = mysql_query($sql);
+	$sql = Database::statement('SELECT * FROM ' . Database::identifier($dbpf) . '_menu WHERE par=? ORDER BY pos', [(int)($par)]);
+	$qur = Database::query($sql);
 	if ($qur){
-		while($rez = mysql_fetch_assoc($qur)){
+		while($rez = Database::fetchAssoc($qur)){
 
-                        $sql2 = "SELECT * FROM ".$dbpf."_menu WHERE par=".$rez['id']."";
-                    	$qur2 = mysql_query($sql2); 
-                        $kol = mysql_num_rows($qur2);
+                        $sql2 = Database::statement('SELECT * FROM ' . Database::identifier($dbpf) . '_menu WHERE par=?', [(int)($rez['id'])]);
+                    	$qur2 = Database::query($sql2); 
+                        $kol = Database::numRows($qur2);
 
 					
 
@@ -76,14 +77,14 @@ else
 //1111111111111111111---------------------------------------------------------------------------------------------------------------------------------------------------------
 function show_cat1($id=0){
   global $dbpf,$lev; $out = ''; $lev++;
-        $sql=mysql_query('set names cp1251');  
+        $sql=Database::query('set names cp1251');  
  $count=0;
  $kol=0;
-	$sql = "SELECT * FROM ".$dbpf."_menu WHERE par=".$id." ORDER BY pos";
-	$qur = mysql_query($sql);
-        $kol = mysql_num_rows($qur);
+	$sql = Database::statement('SELECT * FROM ' . Database::identifier($dbpf) . '_menu WHERE par=? ORDER BY pos', [(int)($id)]);
+	$qur = Database::query($sql);
+        $kol = Database::numRows($qur);
 	if ($qur){
-		while($rez = mysql_fetch_assoc($qur)){
+		while($rez = Database::fetchAssoc($qur)){
 $number=$rez['page']-1;
 $numbers=$rez['link'];
 
@@ -105,11 +106,11 @@ else
 	else  $out .= '';
 
 
-	$sqll = "SELECT * FROM ".$dbpf."_menu WHERE par>0 ORDER BY pos";
-	$qurr = mysql_query($sqll);
-        $koll = mysql_num_rows($qurr);
+	$sqll = Database::statement('SELECT * FROM ' . Database::identifier($dbpf) . '_menu WHERE par>0 ORDER BY pos', []);
+	$qurr = Database::query($sqll);
+        $koll = Database::numRows($qurr);
 
-		while($rezz = mysql_fetch_assoc($qurr))
+		while($rezz = Database::fetchAssoc($qurr))
 {
 if ($rezz['par']==$rez['id'])
 {

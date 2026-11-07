@@ -18,20 +18,23 @@
 </head>
 <body bgcolor="#fff">
 
-<?php 
+<?php
+require_once __DIR__ . '/src/bootstrap.php'; 
     include("db1.php");
-    $connect=mysql_connect($host,$username,$passwd);
-    $db=mysql_select_db($db_name);	
-    mysql_query("create table if not exists TEST_TABLE(num varchar(255) , name text,  kurs1 varchar(255), kurs2 varchar(255), kurs3 varchar(255))");     
-    mysql_query("delete from TEST_TABLE"); 
+    $connect=Database::connect();
+    $db=Database::selectDatabase($db_name);	
+    Database::query("create table if not exists TEST_TABLE(num varchar(255) , name text,  kurs1 varchar(255), kurs2 varchar(255), kurs3 varchar(255))");     
+    /* Keep cached rates when the upstream feed is unavailable. */ 
 
 $date_today = date("Y-m-d");
-$text = file("http://www.rw/kurs/nbrates-$date_today.txt"); 
-    while ($s = array_shift($text))
+$text = @file("http://www.rw/kurs/nbrates-$date_today.txt", 0, stream_context_create(['http' => ['timeout' => 2]])) ?: []; 
+    if ($text !== []) { Database::query("DELETE FROM TEST_TABLE"); }
+foreach ($text as $s)
 { 
 $arr = explode(";", $s);
+if (count($arr) < 5) { continue; }
 $arr[2]=trim ($arr[2]);
-        mysql_query("insert into TEST_TABLE (num, name, kurs1, kurs2, kurs3) values ('".$arr[0]."','".$arr[1]."', '".$arr[2]."', '".$arr[3]."','".$arr[4]."')"); 
+        Database::query(Database::statement('insert into TEST_TABLE (num, name, kurs1, kurs2, kurs3) values (?,?, ?, ?,?)', [($arr[0]), ($arr[1]), ($arr[2]), ($arr[3]), ($arr[4])])); 
 }    
 
 $time=date( "Hi" );
@@ -48,11 +51,11 @@ if ($time>1314) {
 
 
 
-$sql = mysql_query("SELECT * FROM TEST_TABLE join TEST_TABLE2 ON TEST_TABLE.name = TEST_TABLE2.name LIMIT 2,30");
+$sql = Database::query("SELECT * FROM TEST_TABLE join TEST_TABLE2 ON TEST_TABLE.name = TEST_TABLE2.name LIMIT 2,30");
 
 
-//$sql = mysql_query("SELECT * FROM TEST_TABLE join TEST_TABLE2  where ( TEST_TABLE.kurs1 = TEST_TABLE2.kurs1 and ( TEST_TABLE.kurs1='EUR' || TEST_TABLE.kurs1='USD' || TEST_TABLE.kurs1='RUB' || TEST_TABLE.kurs1='UAH' || TEST_TABLE.kurs1='CHF'  || TEST_TABLE.kurs1='LTL'  || TEST_TABLE.kurs1='LVL'))");
-//$sql = mysql_query("SELECT * FROM TEST_TABLE join TEST_TABLE1  where ( TEST_TABLE.kurs1 = TEST_TABLE1.kurs1 and ( TEST_TABLE1.kurs1='EUR' || TEST_TABLE1.kurs1='USD' || TEST_TABLE1.kurs1='RUB' || TEST_TABLE1.kurs1='UAH' || TEST_TABLE1.kurs1='CHF'  || TEST_TABLE1.kurs1='LTL'  || TEST_TABLE1.kurs1='LVL'))");
+//$sql = Database::query("SELECT * FROM TEST_TABLE join TEST_TABLE2  where ( TEST_TABLE.kurs1 = TEST_TABLE2.kurs1 and ( TEST_TABLE.kurs1='EUR' || TEST_TABLE.kurs1='USD' || TEST_TABLE.kurs1='RUB' || TEST_TABLE.kurs1='UAH' || TEST_TABLE.kurs1='CHF'  || TEST_TABLE.kurs1='LTL'  || TEST_TABLE.kurs1='LVL'))");
+//$sql = Database::query("SELECT * FROM TEST_TABLE join TEST_TABLE1  where ( TEST_TABLE.kurs1 = TEST_TABLE1.kurs1 and ( TEST_TABLE1.kurs1='EUR' || TEST_TABLE1.kurs1='USD' || TEST_TABLE1.kurs1='RUB' || TEST_TABLE1.kurs1='UAH' || TEST_TABLE1.kurs1='CHF'  || TEST_TABLE1.kurs1='LTL'  || TEST_TABLE1.kurs1='LVL'))");
 
     echo ("<table  cellspacing='0' cellpadding='4' border='0'  style='border-collapse: collapse;' bgcolor='#fff' align='center' width='430'>
 <tr>
@@ -64,7 +67,7 @@ $sql = mysql_query("SELECT * FROM TEST_TABLE join TEST_TABLE2 ON TEST_TABLE.name
 <td align='center' width='30' class='zag4'>»Ì‰</td>
 </tr>
 ");
- while ($tablerows = mysql_fetch_row($sql))
+ while ($tablerows = Database::fetchRow($sql))
 {
 
 $raznica=$tablerows[8] - $tablerows[3];
@@ -105,11 +108,11 @@ echo ("</table>");
 
 else {
 
-$sql = mysql_query("SELECT * FROM TEST_TABLE join TEST_TABLE1 ON TEST_TABLE.name = TEST_TABLE1.name LIMIT 2,30");
+$sql = Database::query("SELECT * FROM TEST_TABLE join TEST_TABLE1 ON TEST_TABLE.name = TEST_TABLE1.name LIMIT 2,30");
 
 
 
-//$sql = mysql_query("SELECT * FROM TEST_TABLE join TEST_TABLE1 where ( TEST_TABLE.kurs1 = TEST_TABLE1.kurs1 and ( TEST_TABLE1.kurs1='EUR' || TEST_TABLE1.kurs1='USD' || TEST_TABLE1.kurs1='RUB' || TEST_TABLE1.kurs1='UAH' || TEST_TABLE1.kurs1='CHF'  || TEST_TABLE1.kurs1='LTL'  || TEST_TABLE1.kurs1='LVL') ) ");
+//$sql = Database::query("SELECT * FROM TEST_TABLE join TEST_TABLE1 where ( TEST_TABLE.kurs1 = TEST_TABLE1.kurs1 and ( TEST_TABLE1.kurs1='EUR' || TEST_TABLE1.kurs1='USD' || TEST_TABLE1.kurs1='RUB' || TEST_TABLE1.kurs1='UAH' || TEST_TABLE1.kurs1='CHF'  || TEST_TABLE1.kurs1='LTL'  || TEST_TABLE1.kurs1='LVL') ) ");
 
     echo ("<table  cellspacing='0' cellpadding='0' border='0'  style='border-collapse: collapse;' bgcolor='#fff' align='center' width='430'>
 <tr>
@@ -121,7 +124,7 @@ $sql = mysql_query("SELECT * FROM TEST_TABLE join TEST_TABLE1 ON TEST_TABLE.name
 <td align='center' width='30' class='zag4'>»Ì‰</td>
 </tr>
 ");
- while ($tablerows = mysql_fetch_row($sql))
+ while ($tablerows = Database::fetchRow($sql))
 {
 
 $raznica=$tablerows[3] - $tablerows[8];

@@ -1,7 +1,8 @@
-<?php 
+<?php
+require_once __DIR__ . '/src/bootstrap.php'; 
     include("db.php");
-    $connect=mysql_connect($host,$username,$passwd);
-    $db=mysql_select_db($db_name);	
+    $connect=Database::connect();
+    $db=Database::selectDatabase($db_name);	
 
 
 
@@ -10,8 +11,8 @@ $datkon=date("d");
 $datkon1=date("m");
 $datkon2=$datkon1-1;
                                                           
-$sql=mysql_query("SELECT * FROM richstone_page WHERE date like '___0$datkon2%' order by date DESC LIMIT 100");
-while ($newss = mysql_fetch_row($sql))
+$sql=Database::query(Database::statement('SELECT * FROM richstone_page WHERE date like ? order by date DESC LIMIT 100', ['___0' . ($datkon2) . '%']));
+while ($newss = Database::fetchRow($sql))
 
 {
 

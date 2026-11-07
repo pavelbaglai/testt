@@ -4,15 +4,16 @@
  <meta http-equiv="Content-Type" content="text/html; charset=windows-1251">
  <link rel="stylesheet" type="text/css" href="css/style33.css" />
 </head>
-<?php 	
+<?php
+require_once __DIR__ . '/src/bootstrap.php'; 	
 
 
-$id=$_GET['code'];
+$id = $_GET['code'] ?? '';
 
  include("db.php");    		
 
-{ $sql = mysql_query("SELECT * FROM richstone_katalog WHERE id=$id ORDER BY key_num",$db);
-while ($tablerowss = mysql_fetch_row($sql))
+{ $sql = Database::query(Database::statement('SELECT * FROM richstone_katalog WHERE id=? ORDER BY key_num', [(int)($id)]),$db);
+while ($tablerowss = Database::fetchRow($sql))
 
 {
 
@@ -129,7 +130,7 @@ echo "
 </tr>
 </table></div>";
 }}
-  mysql_close($db);  
+  Database::close($db);  
 
 ?>
 </html>

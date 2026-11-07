@@ -1,22 +1,23 @@
-<?php 
+<?php
+require_once __DIR__ . '/src/bootstrap.php'; 
 
-$logon=$_POST['login'];  
+$logon = $_POST['login'] ?? '';  
 
-$pswd=$_POST['pswd']; 
+$pswd = $_POST['pswd'] ?? ''; 
 
-$con=mysql_connect('localhost','root','web2012irc'); 
+$con=Database::connect(); 
 
-$db=mysql_select_db('telephone'); 
+$db=Database::selectDatabase(Database::setting('DB_NAME', 'telephone')); 
 
-$query=mysql_query('SET NAMES cp1251'); 
+$query=Database::query('SET NAMES cp1251'); 
 
-$query=mysql_query("select * from osv_user where (osv_user_name='".$logon."')and(osv_user_password=md5('".$pswd."'))");
+$query=Database::query(Database::statement('select * from osv_user where (osv_user_name=?)and(osv_user_password=md5(?))', [($logon), ($pswd)]));
  
-$res=mysql_fetch_row($query); 
+$res = Database::fetchRow($query) ?: array_fill(0, 9, ''); 
 
 $s=$res[0]; 
 
-$user_flag=$res[3]; 
+$user_flag = (int)$res[3]; 
 $user_logon=$res[1]; 
 $user_name=$res[4]; 
 $user_fname=$res[5]; 
@@ -24,8 +25,8 @@ $user_sname=$res[6];
 $news=$res[7]; 
 $pochta=$res[8]; 
 
-$res=mysql_free_result($query); 
-mysql_close($con); 
+$res=Database::freeResult($query); 
+Database::close($con); 
 
 
 if($user_flag>0){        setcookie("user_flag",$user_flag);
@@ -39,7 +40,7 @@ if($user_flag>0){        setcookie("user_flag",$user_flag);
 header("Location: main.php");  } 
 
 
-else {                   $user_flag==0;
+else {                   $user_flag = 0;
                          setcookie("user_flag",$user_flag);
                          setcookie("user_logon",$user_logon);   
                          setcookie("user_name",$user_name);   

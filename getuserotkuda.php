@@ -1,11 +1,12 @@
 <?php
+require_once __DIR__ . '/src/bootstrap.php';
 include("dbpoezd.php");    		
-mysql_connect("$host", "$username", "$passwd") or die("Ошибка подключения к базе");
-mysql_select_db("$db_name") or die("База не найдена");
+Database::connect() or die("Ошибка подключения к базе");
+Database::selectDatabase("$db_name") or die("База не найдена");
 header("Content-Type: text/html;charset=windows-1251;");
-$user_get = $_GET['q'];
+$user_get = $_GET['q'] ?? '';
 $user_get = iconv("utf-8", "WINDOWS-1251", $user_get);  
-$sql=mysql_query('SET NAMES cp1251');                                                                                                                                         
+$sql=Database::query('SET NAMES cp1251');                                                                                                                                         
 
 
 
@@ -39,17 +40,17 @@ $user_get=strtr($user_get, $trans);
 
 
 if ((isset($user_get))) {
-   $sql = mysql_query('SELECT * FROM train_station WHERE LOWER(sf) LIKE CONCAT("'.strtolower($user_get).'","%") COLLATE cp1251_general_ci LIMIT 8');
-//   $sql = mysql_query("SELECT * FROM `train_station` WHERE `sf` LIKE '%{$user_get}%' COLLATE cp1251_general_ci order by sf ASC LIMIT 10");
+   $sql = Database::query(Database::statement('SELECT * FROM train_station WHERE LOWER(sf) LIKE CONCAT(?,"%") COLLATE cp1251_general_ci LIMIT 8', [(strtolower($user_get))]));
+//   $sql = Database::query("SELECT * FROM `train_station` WHERE `sf` LIKE '%{$user_get}%' COLLATE cp1251_general_ci order by sf ASC LIMIT 10");
 
 
-//   $sql = mysql_query("SELECT * FROM `train_station` WHERE `sf` LIKE '%{$user_get}%' COLLATE cp1251_general_ci order by sf ASC LIMIT 10");
-//   $sql = mysql_query("SELECT * FROM `train_station` WHERE (`ss` LIKE '%{$user_get}%' COLLATE cp1251_general_ci)) order by num_otdel ASC LIMIT 9 ");
-//   $sql = mysql_query("SELECT * FROM `richstone_katalog` WHERE (`radiobutton` between 1 and 5) and  ((`tel` LIKE '%{$user_get1}%') OR (`fname` LIKE '%{$user_get1}%' COLLATE cp1251_general_ci) OR (`lname` LIKE '%{$user_get1}%' COLLATE cp1251_general_ci) OR (`office` LIKE '%{$user_get1}%') OR (`information` LIKE '%{$user_get1}%' COLLATE cp1251_general_ci) OR (`email` LIKE '%{$user_get1}%') OR (`name` LIKE '%{$user_get1}%' COLLATE cp1251_general_ci) OR (`otdel` LIKE '%{$user_get1}%' COLLATE cp1251_general_ci)) order by num_otdel ASC LIMIT 9 ");
-//   $sql = mysql_query("SELECT * FROM `richstone_katalog` WHERE (`radiobutton` between 1 and 5) and  ((`tel` LIKE '%{$user_get}%') OR (`fname` LIKE '%{$user_get}%' COLLATE cp1251_general_ci) OR (`lname` LIKE '%{$user_get}%' COLLATE cp1251_general_ci) OR (`office` LIKE '%{$user_get}%') OR (`information` LIKE '%{$user_get}%' COLLATE cp1251_general_ci) OR (`email` LIKE '%{$user_get}%') OR (`name` LIKE '%{$user_get}%' COLLATE cp1251_general_ci) OR (`otdel` LIKE '%{$user_get}%' COLLATE cp1251_general_ci)) order by num_otdel ASC LIMIT 9 ");
-//   $sqll = mysql_query("SELECT * FROM `richstone_katalog` WHERE (`radiobutton` between 1 and 5) and  ((`tel` LIKE '%{$user_get}%') OR (`fname` LIKE '%{$user_get}%' COLLATE cp1251_general_ci) OR (`lname` LIKE '%{$user_get}%'  COLLATE cp1251_general_ci) OR (`office` LIKE '%{$user_get}%') OR (`information` LIKE '%{$user_get}%' COLLATE cp1251_general_ci) OR (`email` LIKE '%{$user_get}%') OR (`name` LIKE '%{$user_get}%' COLLATE cp1251_general_ci) OR (`otdel` LIKE '%{$user_get}%' COLLATE cp1251_general_ci))");
-$county = mysql_num_rows($sqll);
-    if (mysql_num_rows($sql) != 0) {
+//   $sql = Database::query("SELECT * FROM `train_station` WHERE `sf` LIKE '%{$user_get}%' COLLATE cp1251_general_ci order by sf ASC LIMIT 10");
+//   $sql = Database::query("SELECT * FROM `train_station` WHERE (`ss` LIKE '%{$user_get}%' COLLATE cp1251_general_ci)) order by num_otdel ASC LIMIT 9 ");
+//   $sql = Database::query("SELECT * FROM `richstone_katalog` WHERE (`radiobutton` between 1 and 5) and  ((`tel` LIKE '%{$user_get1}%') OR (`fname` LIKE '%{$user_get1}%' COLLATE cp1251_general_ci) OR (`lname` LIKE '%{$user_get1}%' COLLATE cp1251_general_ci) OR (`office` LIKE '%{$user_get1}%') OR (`information` LIKE '%{$user_get1}%' COLLATE cp1251_general_ci) OR (`email` LIKE '%{$user_get1}%') OR (`name` LIKE '%{$user_get1}%' COLLATE cp1251_general_ci) OR (`otdel` LIKE '%{$user_get1}%' COLLATE cp1251_general_ci)) order by num_otdel ASC LIMIT 9 ");
+//   $sql = Database::query("SELECT * FROM `richstone_katalog` WHERE (`radiobutton` between 1 and 5) and  ((`tel` LIKE '%{$user_get}%') OR (`fname` LIKE '%{$user_get}%' COLLATE cp1251_general_ci) OR (`lname` LIKE '%{$user_get}%' COLLATE cp1251_general_ci) OR (`office` LIKE '%{$user_get}%') OR (`information` LIKE '%{$user_get}%' COLLATE cp1251_general_ci) OR (`email` LIKE '%{$user_get}%') OR (`name` LIKE '%{$user_get}%' COLLATE cp1251_general_ci) OR (`otdel` LIKE '%{$user_get}%' COLLATE cp1251_general_ci)) order by num_otdel ASC LIMIT 9 ");
+//   $sqll = Database::query("SELECT * FROM `richstone_katalog` WHERE (`radiobutton` between 1 and 5) and  ((`tel` LIKE '%{$user_get}%') OR (`fname` LIKE '%{$user_get}%' COLLATE cp1251_general_ci) OR (`lname` LIKE '%{$user_get}%'  COLLATE cp1251_general_ci) OR (`office` LIKE '%{$user_get}%') OR (`information` LIKE '%{$user_get}%' COLLATE cp1251_general_ci) OR (`email` LIKE '%{$user_get}%') OR (`name` LIKE '%{$user_get}%' COLLATE cp1251_general_ci) OR (`otdel` LIKE '%{$user_get}%' COLLATE cp1251_general_ci))");
+$county = Database::numRows($sqll);
+    if (Database::numRows($sql) != 0) {
 
 
 /*
@@ -64,7 +65,7 @@ $county = mysql_num_rows($sqll);
 
      echo'<select MULTIPLE class="search1">';
 
-        while ($row = mysql_fetch_assoc($sql)) {
+        while ($row = Database::fetchAssoc($sql)) {
 
 
 // echo "<input class='search' value='".$row['sf']."'></input><br>";

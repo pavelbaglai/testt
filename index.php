@@ -1,30 +1,31 @@
-<?php                                                  	
-$user_flag=$_COOKIE['user_flag']; 
-$user_name=$_COOKIE['user_name']; 
-$user_fname=$_COOKIE['user_fname']; 
-$user_sname=$_COOKIE['user_sname']; 
-$user_skidka=$_COOKIE['user_skidka']; 
-$user_bad=$_COOKIE['user_bad']; 
-$user_data=$_COOKIE['user_data'];
-$nameblank=$_COOKIE['nameblank'];
-$page_id=$_POST['list_page']; 
-$work_id=$_GET['work'];
+<?php
+require_once __DIR__ . '/src/bootstrap.php';                                                  	
+$user_flag = $_COOKIE['user_flag'] ?? 0; 
+$user_name = $_COOKIE['user_name'] ?? ''; 
+$user_fname = $_COOKIE['user_fname'] ?? ''; 
+$user_sname = $_COOKIE['user_sname'] ?? ''; 
+$user_skidka = $_COOKIE['user_skidka'] ?? ''; 
+$user_bad = $_COOKIE['user_bad'] ?? ''; 
+$user_data = $_COOKIE['user_data'] ?? '';
+$nameblank = $_COOKIE['nameblank'] ?? '';
+$page_id = $_POST['list_page'] ?? ''; 
+$work_id = $_GET['work'] ?? '';
 ?>
 
 <?php 
 
-$type_query=$_GET["query"];
-$object_id=$_GET["link"]; 
-$object_news=$_GET["news"]; 
-$object_arh=$_GET["arh"]; 
-$object_pogoda=$_GET["pogoda"]; 
+$type_query = $_GET["query"] ?? '';
+$object_id = $_GET["link"] ?? ''; 
+$object_news = $_GET["news"] ?? ''; 
+$object_arh = $_GET["arh"] ?? ''; 
+$object_pogoda = $_GET["pogoda"] ?? ''; 
 header("Content-Type: text/html; charset=cp1251;");
-$qr=mysql_query('SET NAMES cp1251');
-$sql=mysql_query('SET NAMES cp1251');
-$sqll=mysql_query('SET NAMES cp1251');
+$qr=Database::query('SET NAMES cp1251');
+$sql=Database::query('SET NAMES cp1251');
+$sqll=Database::query('SET NAMES cp1251');
 
 include("db.php");    		
-$connect=mysql_connect($host,$username,$passwd);  
+$connect=Database::connect();  
 
 ?>
 
@@ -35,11 +36,11 @@ $time=date("Y-m-d", time());
 $os=getenv("HTTP_USER_AGENT");
 $host=getenv("REMOTE_HOST");
 $page=getenv("HTTP_REFERER");
-$link=mysql_connect($host, $username, $passwd);
-mysql_select_db($db_name, $link);
-$query = "Insert into statistics (date, ip, os, host, page) values ('$time', '$ip', '$os', '$host', '$page')";
-mysql_query($query, $link);
-mysql_close($link);
+$link=Database::connect();
+Database::selectDatabase($db_name, $link);
+$query = Database::statement('Insert into statistics (date, ip, os, host, page) values (?, ?, ?, ?, ?)', [($time), ($ip), ($os), ($host), ($page)]);
+Database::query($query, $link);
+Database::close($link);
 
 
 function calculate_age($birthday) {
@@ -548,7 +549,7 @@ function showHint(str) {
 function getRealIP()
 {
 
-   if( $_SERVER['HTTP_X_FORWARDED_FOR'] != '' )
+   if (!empty($_SERVER['HTTP_X_FORWARDED_FOR']))
    {
       $client_ip =
          ( !empty($_SERVER['REMOTE_ADDR']) ) ?
@@ -558,10 +559,10 @@ function getRealIP()
                $_ENV['REMOTE_ADDR']
                :
                "unknown" );
-      $entries = split('[, ]', $_SERVER['HTTP_X_FORWARDED_FOR']);
+      $entries = preg_split('/[, ]/', $_SERVER['HTTP_X_FORWARDED_FOR']);
 
       reset($entries);
-      while (list(, $entry) = each($entries))
+      while (list(, $entry) = next_form_item($entries))
       {
          $entry = trim($entry);
          if ( preg_match("/^([0-9]+\.[0-9]+\.[0-9]+\.[0-9]+)/", $entry, $ip_list) )
@@ -600,21 +601,21 @@ function getRealIP()
 }
 
 
-mysql_connect("$host", "$username", "$passwd") or die("Ошибка подключения к базе");
-mysql_select_db("$db_name") or die("База не найдена");
-$sql=mysql_query('SET NAMES cp1251');
+Database::connect() or die("Ошибка подключения к базе");
+Database::selectDatabase("$db_name") or die("База не найдена");
+$sql=Database::query('SET NAMES cp1251');
 
 $dat=date("Y-m-d") ;
-$daty=$dat-1;
+$daty = date('Y-m-d', strtotime('yesterday'));
 
 $datpol=date("Сегодня d-m-Y");
 
 
 
 
-$m_arr = array(1 => Января, 2 => Февраля, 3 => Марта, 4 => Апреля, 5 => Мая, 6 => Июня, 7 => Июля, 8 => Августа, 9 => Сентября, 10 => Октября, 11 => Ноября, 12 => Декабря);
-$d_arr = array(1 => Понедельник, 2 => Вторник, 3 => Среда, 4 => Четверг, 5 => Пятница, 6 => Суббота, 0 => Воскресенье);
-$daty=$dat-1;
+$m_arr = array(1 => 'Января', 2 => 'Февраля', 3 => 'Марта', 4 => 'Апреля', 5 => 'Мая', 6 => 'Июня', 7 => 'Июля', 8 => 'Августа', 9 => 'Сентября', 10 => 'Октября', 11 => 'Ноября', 12 => 'Декабря');
+$d_arr = array(1 => 'Понедельник', 2 => 'Вторник', 3 => 'Среда', 4 => 'Четверг', 5 => 'Пятница', 6 => 'Суббота', 0 => 'Воскресенье');
+$daty = date('Y-m-d', strtotime('yesterday'));
 $dat100=$m_arr[date('n')];
 $dat101=$d_arr[date('w')];
 
@@ -623,52 +624,52 @@ echo "<h4>".$datpol;
 
 echo " Ваш IP - ".$real_ip = getRealIP()."</h4>";
 
-$sqll="select * from statistics WHERE date='$dat'";
-$ress=mysql_query($sqll);
-$count = mysql_num_rows($ress);
+$sqll=Database::statement('select * from statistics WHERE date=?', [($dat)]);
+$ress=Database::query($sqll);
+$count = Database::numRows($ress);
 echo " Сегодня было просмотрено <span class='textgreen1'>".$count."</span> страниц, и нас посетило <span class='textgreen1'>";
 
 
-$sqll="select DISTINCT(ip) from statistics WHERE date='$dat'";
-$ress=mysql_query($sqll);
-$count = mysql_num_rows($ress);
+$sqll=Database::statement('select DISTINCT(ip) from statistics WHERE date=?', [($dat)]);
+$ress=Database::query($sqll);
+$count = Database::numRows($ress);
 echo $count."</span> посетителей | ";
 
 $yest_date=time()-60*60*24; 
 $yest_date=date("Y-m-d",$yest_date);
 
-$sqlly="select DISTINCT(ip), DATE_SUB(CURDATE(), INTERVAL 1 DAY) FROM statistics WHERE date='$yest_date'";
-$ressy=mysql_query($sqlly);
-$county = mysql_num_rows($ressy);
+$sqlly=Database::statement('select DISTINCT(ip), DATE_SUB(CURDATE(), INTERVAL 1 DAY) FROM statistics WHERE date=?', [($yest_date)]);
+$ressy=Database::query($sqlly);
+$county = Database::numRows($ressy);
 echo "Вчера ";
 echo $county." </span>| ";
 
 ?>
 
 <?php
-mysql_connect("$host", "$username", "$passwd") or die("Ошибка подключения к базе");
-mysql_select_db("$db_name") or die("База не найдена");
-$sql=mysql_query('SET NAMES cp1251');
+Database::connect() or die("Ошибка подключения к базе");
+Database::selectDatabase("$db_name") or die("База не найдена");
+$sql=Database::query('SET NAMES cp1251');
 
 $sqll='select * from richstone_katalog WHERE (radiobutton=1) or (radiobutton=2) or (radiobutton=3) or (radiobutton=4) or (radiobutton=5)';
-$ress=mysql_query($sqll);
-$count = mysql_num_rows($ress);
+$ress=Database::query($sqll);
+$count = Database::numRows($ress);
 echo "Зарегистрировано: ".$count." человек, из них";
 
 
-$result = mysql_query("SELECT  COUNT(*) FROM richstone_katalog WHERE (radiobutton=1) or (radiobutton=4)");
-$myrow = mysql_fetch_array($result);
+$result = Database::query("SELECT  COUNT(*) FROM richstone_katalog WHERE (radiobutton=1) or (radiobutton=4)");
+$myrow = Database::fetchArray($result);
 $total=$myrow[0];
 echo " ".$total." мужчин,";
 
 
-$result1 = mysql_query("SELECT  COUNT(*) FROM richstone_katalog WHERE (radiobutton=2) or (radiobutton=3) or (radiobutton=5)");
-$myrow1 = mysql_fetch_array($result1);
+$result1 = Database::query("SELECT  COUNT(*) FROM richstone_katalog WHERE (radiobutton=2) or (radiobutton=3) or (radiobutton=5)");
+$myrow1 = Database::fetchArray($result1);
 $total1=$myrow1[0];
 echo " ".$total1." женщин и ";
 
-$result1 = mysql_query("SELECT  COUNT(*) FROM richstone_katalog WHERE (radiobutton=3)");
-$myrow1 = mysql_fetch_array($result1);
+$result1 = Database::query("SELECT  COUNT(*) FROM richstone_katalog WHERE (radiobutton=3)");
+$myrow1 = Database::fetchArray($result1);
 $total1=$myrow1[0];
 echo " ".$total1." в д/о";
 ?>
@@ -770,12 +771,12 @@ echo "
 
 <?php
 
-    $sql = mysql_query("SELECT * FROM `richstone_page` WHERE alt_name=1 order by key_num ASC");
-        while ($row = mysql_fetch_row($sql))
+    $sql = Database::query("SELECT * FROM `richstone_page` WHERE alt_name=1 order by key_num ASC");
+        while ($row = Database::fetchRow($sql))
 {
-$sqll="select * from richstone_katalog WHERE key_page =".$row[8]." order by key_page ASC";
-$ress=mysql_query($sqll);
-$count = mysql_num_rows($ress);
+$sqll=Database::statement('select * from richstone_katalog WHERE key_page =? order by key_page ASC', [(int)($row[8])]);
+$ress=Database::query($sqll);
+$count = Database::numRows($ress);
 
 //echo " <span id='ajaxgo'><a href='index.php?link=".$row[6]."' class='zag'>".$row[1]."(<span class='textgreen'>".$count."</span>) </a></span>";
 echo " <a href='index.php?link=".$row[6]."' class='zag' title='".$row[15]."'>".$row[1]."(<span class='textgreen'>".$count."</span>) </a>";
@@ -799,8 +800,8 @@ include("al_index.php");
 /*
 <h5>Доска почета</h5>
 $rand=mt_rand(1, 15);
-$sql = mysql_query("SELECT * FROM `doska` WHERE id=$rand");
-$row = mysql_fetch_row($sql);
+$sql = Database::query(Database::statement('SELECT * FROM `doska` WHERE id=?', [(int)($rand)]));
+$row = Database::fetchRow($sql);
 
 echo '
 
@@ -852,16 +853,16 @@ echo'</td>
 print('<form action="index.php?link=82" method="post" valign="top">');
 
 echo ("<table width='150' border='0' align='center' cellpadding='0' cellspacing='5'><tr><td>");
-$result3 = mysql_query("SELECT * FROM pochta order by id");
+$result3 = Database::query("SELECT * FROM pochta order by id");
 //print('<form action="index.php?link=82" method="post" valign="top">');
 
 
 print("<select name='page_type'  class='avto3'>");
-while($restext=mysql_fetch_row($result3))
+while($restext=Database::fetchRow($result3))
 {print '<option value='. $restext[2].'>'.$restext[1].'</option>';}	
 print("</select></td></tr>");
 $date=date("d-m-Y") ;
-$ip=$_SERVER['REMOTE_ADDR'];
+$ip = $_SERVER['REMOTE_ADDR'] ?? '';
 
 print('<tr><td><input type="hidden" name="page_ip" value="'.$ip.'">
                <input type="hidden" name="page_date" value="'.$date.'">
@@ -874,11 +875,11 @@ print('<tr><td><input  class="butt1" type="submit" value="Ок"></form></td></tr><
 <tr><td colspan="3" valign="top"  height="100%"  class="otctup">
 <div style="position:absolute; z-index:1; top:75; left:215" id="test" class="test"></div>
 <?php
-mysql_select_db($db_name);  
+Database::selectDatabase($db_name);  
 
-$id_pg=$object_id+1;  
-$qr=mysql_query('SELECT * FROM richstone_page where id='.$id_pg);
-$res=mysql_fetch_row($qr); 
+$id_pg=(int)$object_id + 1;  
+$qr=Database::query(Database::statement('SELECT * FROM richstone_page where id=?', [(int)($id_pg)]));
+$res=Database::fetchRow($qr); 
 
 
 
@@ -928,8 +929,8 @@ or $res[8] == '688'
 )
 {
 
-$qrr=mysql_query('SELECT * FROM osv_user where osv_user_type='.$object_id);
-$resw=mysql_fetch_row($qrr);
+$qrr=Database::query(Database::statement('SELECT * FROM osv_user where osv_user_type=?', [(int)($object_id)]));
+$resw=Database::fetchRow($qrr);
 //--------------------------------------------------------------------------начало телефонного справочника--------------------------------------------------------------------//
 print("<h5> "); 
 
@@ -1010,7 +1011,7 @@ switch($id_pg)
 {
     case 2: 
 
-		$sql = mysql_query("SELECT * FROM richstone_katalog where key_page=1 order by num_otdel ASC");
+		$sql = Database::query("SELECT * FROM richstone_katalog where key_page=1 order by num_otdel ASC");
 echo ('                            
 <table cellpadding="0" cellspacing="0" border="0" width="100%">
 <tr>
@@ -1022,10 +1023,10 @@ echo ('
 <td class="ml" width="27" height="26"></td>
 <td class="mc">');
 
-//$result = mysql_query("SELECT * FROM richstone_katalog where key_page=$res[6] order by num_otdel ASC");
+//$result = Database::query("SELECT * FROM richstone_katalog where key_page=$res[6] order by num_otdel ASC");
 
 // количество строк
-//$num_results = mysql_num_rows($result);
+//$num_results = Database::numRows($result);
 echo ("
 <table cellpadding='0' cellspacing='0' border='0' style='border-collapse: collapse;' width='100%'><tr>
 <td align='center' class='zag1' width='30' height='25'>№</td>
@@ -1042,13 +1043,13 @@ echo ("
 
 // начальный цвет
 $color = '#d9e8f1';
-for ($i=1; $i<($row = mysql_fetch_row($sql)); $i++) 
+for ($i=1; $i<($row = Database::fetchRow($sql)); $i++) 
 
 //for ($i=1; $i<$num_results; $i++) {
 //for ($i=1; $i<$num_results; $i++) 
 
 {
-//    $row = mysql_fetch_array($result);
+//    $row = Database::fetchArray($result);
     // начало строки
     echo "<tr ";
     // определяем какой цвет выводить
@@ -1154,11 +1155,11 @@ echo '</table>';
 
 echo (" <table cellpadding='0' cellspacing='20' border='0' width='100%' valign='top'><tr><td  valign='top'>");
 
-//$sql = mysql_query("SELECT * FROM richstone_katalog WHERE (key_page=$res[6]) and (radiobutton between 1 and 5) order by num_otdel ASC ");
-$sql = mysql_query("SELECT * FROM richstone_katalog WHERE (key_page=$res[6]) and (radiobutton=1 or radiobutton=4) order by num_otdel ASC ");
+//$sql = Database::query("SELECT * FROM richstone_katalog WHERE (key_page=$res[6]) and (radiobutton between 1 and 5) order by num_otdel ASC ");
+$sql = Database::query(Database::statement('SELECT * FROM richstone_katalog WHERE (key_page=?) and (radiobutton=1 or radiobutton=4) order by num_otdel ASC ', [(int)($res[6])]));
 
-$sql1 = mysql_query("SELECT count(*) FROM richstone_katalog WHERE (key_page=$res[6]) and (radiobutton=1 or radiobutton=4) order by num_otdel ASC ");
-$count = mysql_fetch_row($sql1);
+$sql1 = Database::query(Database::statement('SELECT count(*) FROM richstone_katalog WHERE (key_page=?) and (radiobutton=1 or radiobutton=4) order by num_otdel ASC ', [(int)($res[6])]));
+$count = Database::fetchRow($sql1);
 $total = $count[0];
 
 /*echo ("
@@ -1169,7 +1170,7 @@ $total = $count[0];
 echo "<h5><img src='http://www.it.rw/img/def11.png'> Мужчины отдела $res[1]. Всего $total</h5>";
 // начальный цвет
 $color = '#d9e8f1';
-for ($i=1; $i<($row = mysql_fetch_row($sql)); $i++) 
+for ($i=1; $i<($row = Database::fetchRow($sql)); $i++) 
 {
     // начало строки
     echo "<tr ";
@@ -1193,10 +1194,10 @@ echo ("</td><td valign='top'>");
 
 
 
-//$sql = mysql_query("SELECT * FROM richstone_katalog WHERE (key_page=$res[6]) and (radiobutton between 1 and 5) order by num_otdel ASC ");
-$sql = mysql_query("SELECT * FROM richstone_katalog WHERE (key_page=$res[6]) and (radiobutton=2 or radiobutton=5) order by num_otdel ASC ");
-$sql1 = mysql_query("SELECT count(*) FROM richstone_katalog WHERE (key_page=$res[6]) and (radiobutton=2 or radiobutton=5) order by num_otdel ASC ");
-$count = mysql_fetch_row($sql1);
+//$sql = Database::query("SELECT * FROM richstone_katalog WHERE (key_page=$res[6]) and (radiobutton between 1 and 5) order by num_otdel ASC ");
+$sql = Database::query(Database::statement('SELECT * FROM richstone_katalog WHERE (key_page=?) and (radiobutton=2 or radiobutton=5) order by num_otdel ASC ', [(int)($res[6])]));
+$sql1 = Database::query(Database::statement('SELECT count(*) FROM richstone_katalog WHERE (key_page=?) and (radiobutton=2 or radiobutton=5) order by num_otdel ASC ', [(int)($res[6])]));
+$count = Database::fetchRow($sql1);
 $total = $count[0];
 
 echo ("
@@ -1207,7 +1208,7 @@ echo ("
 echo "<h5><img src='http://www.it.rw/img/def22.png'> Женщины отдела $res[1]. Всего $total</h5>";
 // начальный цвет
 $color = '#d9e8f1';
-for ($i=1; $i<($row = mysql_fetch_row($sql)); $i++) 
+for ($i=1; $i<($row = Database::fetchRow($sql)); $i++) 
 {
     // начало строки
     echo "<tr ";
@@ -1226,10 +1227,10 @@ echo '</table>';
 
 
 
-//$sql = mysql_query("SELECT * FROM richstone_katalog WHERE (key_page=$res[6]) and (radiobutton between 1 and 5) order by num_otdel ASC ");
-$sql = mysql_query("SELECT * FROM richstone_katalog WHERE (key_page=$res[6]) and (radiobutton=3) order by num_otdel ASC ");
-$sql1 = mysql_query("SELECT count(*) FROM richstone_katalog WHERE (key_page=$res[6]) and (radiobutton=3) order by num_otdel ASC ");
-$count = mysql_fetch_row($sql1);
+//$sql = Database::query("SELECT * FROM richstone_katalog WHERE (key_page=$res[6]) and (radiobutton between 1 and 5) order by num_otdel ASC ");
+$sql = Database::query(Database::statement('SELECT * FROM richstone_katalog WHERE (key_page=?) and (radiobutton=3) order by num_otdel ASC ', [(int)($res[6])]));
+$sql1 = Database::query(Database::statement('SELECT count(*) FROM richstone_katalog WHERE (key_page=?) and (radiobutton=3) order by num_otdel ASC ', [(int)($res[6])]));
+$count = Database::fetchRow($sql1);
 $total = $count[0];
 
 echo ("
@@ -1240,7 +1241,7 @@ echo ("
 echo "<h5> Сотрудники отдела $res[1] в декретном отпуске. Всего $total</h5>";   // Перед <h5> стояла картинка <img src='http://www.it.rw/img/def33.png'>
 // начальный цвет
 $color = '#d9e8f1';
-for ($i=1; $i<($row = mysql_fetch_row($sql)); $i++) 
+for ($i=1; $i<($row = Database::fetchRow($sql)); $i++) 
 {
     // начало строки
     echo "<tr ";
@@ -1272,7 +1273,7 @@ echo ('</td>
     break;
 	
 	default: 
-	$sql = mysql_query("SELECT * FROM richstone_katalog where key_page=$res[6] order by num_otdel ASC");
+	$sql = Database::query(Database::statement('SELECT * FROM richstone_katalog where key_page=? order by num_otdel ASC', [(int)($res[6])]));
 	echo ('                            
 	<table cellpadding="0" cellspacing="0" border="0" width="100%">
 	<tr>
@@ -1284,10 +1285,10 @@ echo ('</td>
 	<td class="ml" width="27" height="26"></td>
 	<td class="mc">');
 	
-	//$result = mysql_query("SELECT * FROM richstone_katalog where key_page=$res[6] order by num_otdel ASC");
+	//$result = Database::query("SELECT * FROM richstone_katalog where key_page=$res[6] order by num_otdel ASC");
 	
 	// количество строк
-	//$num_results = mysql_num_rows($result);
+	//$num_results = Database::numRows($result);
 	echo ("
 	<table cellpadding='0' cellspacing='0' border='0' style='border-collapse: collapse;' width='100%'><tr>
 	<td align='center' class='zag1' width='30' height='25'>№</td>
@@ -1305,13 +1306,13 @@ echo ('</td>
 	
 	// начальный цвет
 	$color = '#d9e8f1';
-	for ($i=1; $i<($row = mysql_fetch_row($sql)); $i++) 
+	for ($i=1; $i<($row = Database::fetchRow($sql)); $i++) 
 	
 	//for ($i=1; $i<$num_results; $i++) {
 	//for ($i=1; $i<$num_results; $i++) 
 	
 	{
-	//    $row = mysql_fetch_array($result);
+	//    $row = Database::fetchArray($result);
 		// начало строки
 		echo "<tr ";
 		// определяем какой цвет выводить
@@ -1418,11 +1419,11 @@ echo ('</td>
 	
 	echo (" <table cellpadding='0' cellspacing='20' border='0' width='100%' valign='top'><tr><td  valign='top'>");
 	
-	//$sql = mysql_query("SELECT * FROM richstone_katalog WHERE (key_page=$res[6]) and (radiobutton between 1 and 5) order by num_otdel ASC ");
-	$sql = mysql_query("SELECT * FROM richstone_katalog WHERE (key_page=$res[6]) and (radiobutton=1 or radiobutton=4) order by num_otdel ASC ");
+	//$sql = Database::query("SELECT * FROM richstone_katalog WHERE (key_page=$res[6]) and (radiobutton between 1 and 5) order by num_otdel ASC ");
+	$sql = Database::query(Database::statement('SELECT * FROM richstone_katalog WHERE (key_page=?) and (radiobutton=1 or radiobutton=4) order by num_otdel ASC ', [(int)($res[6])]));
 	
-	$sql1 = mysql_query("SELECT count(*) FROM richstone_katalog WHERE (key_page=$res[6]) and (radiobutton=1 or radiobutton=4) order by num_otdel ASC ");
-	$count = mysql_fetch_row($sql1);
+	$sql1 = Database::query(Database::statement('SELECT count(*) FROM richstone_katalog WHERE (key_page=?) and (radiobutton=1 or radiobutton=4) order by num_otdel ASC ', [(int)($res[6])]));
+	$count = Database::fetchRow($sql1);
 	$total = $count[0];
 	
 	/*echo ("
@@ -1433,7 +1434,7 @@ echo ('</td>
 	echo "<h5><img src='http://www.it.rw/img/def11.png'> Мужчины отдела $res[1]. Всего $total</h5>";
 	// начальный цвет
 	$color = '#d9e8f1';
-	for ($i=1; $i<($row = mysql_fetch_row($sql)); $i++) 
+	for ($i=1; $i<($row = Database::fetchRow($sql)); $i++) 
 	{
 		// начало строки
 		echo "<tr ";
@@ -1457,10 +1458,10 @@ echo ('</td>
 	
 	
 	
-	//$sql = mysql_query("SELECT * FROM richstone_katalog WHERE (key_page=$res[6]) and (radiobutton between 1 and 5) order by num_otdel ASC ");
-	$sql = mysql_query("SELECT * FROM richstone_katalog WHERE (key_page=$res[6]) and (radiobutton=2 or radiobutton=5) order by num_otdel ASC ");
-	$sql1 = mysql_query("SELECT count(*) FROM richstone_katalog WHERE (key_page=$res[6]) and (radiobutton=2 or radiobutton=5) order by num_otdel ASC ");
-	$count = mysql_fetch_row($sql1);
+	//$sql = Database::query("SELECT * FROM richstone_katalog WHERE (key_page=$res[6]) and (radiobutton between 1 and 5) order by num_otdel ASC ");
+	$sql = Database::query(Database::statement('SELECT * FROM richstone_katalog WHERE (key_page=?) and (radiobutton=2 or radiobutton=5) order by num_otdel ASC ', [(int)($res[6])]));
+	$sql1 = Database::query(Database::statement('SELECT count(*) FROM richstone_katalog WHERE (key_page=?) and (radiobutton=2 or radiobutton=5) order by num_otdel ASC ', [(int)($res[6])]));
+	$count = Database::fetchRow($sql1);
 	$total = $count[0];
 	
 	echo ("
@@ -1471,7 +1472,7 @@ echo ('</td>
 	echo "<h5><img src='http://www.it.rw/img/def22.png'> Женщины отдела $res[1]. Всего $total</h5>";
 	// начальный цвет
 	$color = '#d9e8f1';
-	for ($i=1; $i<($row = mysql_fetch_row($sql)); $i++) 
+	for ($i=1; $i<($row = Database::fetchRow($sql)); $i++) 
 	{
 		// начало строки
 		echo "<tr ";
@@ -1490,10 +1491,10 @@ echo ('</td>
 	
 	
 	
-	//$sql = mysql_query("SELECT * FROM richstone_katalog WHERE (key_page=$res[6]) and (radiobutton between 1 and 5) order by num_otdel ASC ");
-	$sql = mysql_query("SELECT * FROM richstone_katalog WHERE (key_page=$res[6]) and (radiobutton=3) order by num_otdel ASC ");
-	$sql1 = mysql_query("SELECT count(*) FROM richstone_katalog WHERE (key_page=$res[6]) and (radiobutton=3) order by num_otdel ASC ");
-	$count = mysql_fetch_row($sql1);
+	//$sql = Database::query("SELECT * FROM richstone_katalog WHERE (key_page=$res[6]) and (radiobutton between 1 and 5) order by num_otdel ASC ");
+	$sql = Database::query(Database::statement('SELECT * FROM richstone_katalog WHERE (key_page=?) and (radiobutton=3) order by num_otdel ASC ', [(int)($res[6])]));
+	$sql1 = Database::query(Database::statement('SELECT count(*) FROM richstone_katalog WHERE (key_page=?) and (radiobutton=3) order by num_otdel ASC ', [(int)($res[6])]));
+	$count = Database::fetchRow($sql1);
 	$total = $count[0];
 	
 	echo ("
@@ -1504,7 +1505,7 @@ echo ('</td>
 	echo "<h5> Сотрудники отдела $res[1] в декретном отпуске. Всего $total</h5>";   // Перед <h5> стояла картинка <img src='http://www.it.rw/img/def33.png'>
 	// начальный цвет
 	$color = '#d9e8f1';
-	for ($i=1; $i<($row = mysql_fetch_row($sql)); $i++) 
+	for ($i=1; $i<($row = Database::fetchRow($sql)); $i++) 
 	{
 		// начало строки
 		echo "<tr ";
@@ -1554,7 +1555,7 @@ if ($res[8] == '997')
 {
 	echo "<h5>Профгрупорги отделов</h5>";
 
-$sql = mysql_query("SELECT * FROM richstone_katalog where key_page=678 order by num_otdel ASC");
+$sql = Database::query("SELECT * FROM richstone_katalog where key_page=678 order by num_otdel ASC");
 echo ('<table cellpadding="0" cellspacing="0" border="0" width="100%">
 <tr>
 <td class="tl" width="27" height="26"></td>
@@ -1575,7 +1576,7 @@ echo ("<table cellpadding='0' cellspacing='0' border='0' style='border-collapse:
 <td align='center' class='zag1' width='60'>Телефон</td>
 <td align='center' class='zag1' width='30'>Отдел</td>
 <td align='center' class='zag1' width='50'>Адрес</td></tr>");
- for ($i=1; $i<($tablerows = mysql_fetch_row($sql)); $i++) 
+ for ($i=1; $i<($tablerows = Database::fetchRow($sql)); $i++) 
 {
 echo ("<tr><td align='center' class='spis'>$i</td>
 <td align='left' class='spis'>$tablerows[11]</td>
@@ -1642,11 +1643,11 @@ echo "</td></td></tr>
 if ($res[0] == '83')
 
 {
-$page_fname=$_POST['page_fname'];
-$page_email=$_POST['page_email'];
-$page_type=$_POST['page_type'];
-$page_date=$_POST['page_date'];
-$page_ip=$_POST['page_ip'];
+$page_fname = $_POST['page_fname'] ?? '';
+$page_email = $_POST['page_email'] ?? '';
+$page_type = $_POST['page_type'] ?? '';
+$page_date = $_POST['page_date'] ?? '';
+$page_ip = $_POST['page_ip'] ?? '';
 $page_fname = htmlspecialchars(trim($page_fname));
 $page_email = htmlspecialchars(trim($page_email));
 $page_type = htmlspecialchars(trim($page_type));
@@ -1664,13 +1665,13 @@ if (isset($_POST['page_fname'], $_POST['page_email'])) {
      
      else {
        echo '<p><br><h2>Здравствуйте, ' . $_POST['page_fname'] . '!<br> Ваша информация успешно отправлена.<br><br> Спасибо за подписку!</h2><p align="right"><img src="img/mail.png"></p>';
-$qr_text="insert into richstone_user set richstone_user_name='".$page_ip."',richstone_user_data='".$page_date."',richstone_user_fio_fname='".$page_fname."',richstone_user_mail='".$page_email."',richstone_user_pr='".$page_type."'";
+$qr_text=Database::statement('insert into richstone_user set richstone_user_name=?,richstone_user_data=?,richstone_user_fio_fname=?,richstone_user_mail=?,richstone_user_pr=?', [($page_ip), ($page_date), ($page_fname), ($page_email), ($page_type)]);
 include("db.php");    		
-$connect = mysql_connect($host,$username,$passwd);
-$qr=mysql_query('set names cp1251');	
-$db=mysql_select_db($db_name);	
-$qr=mysql_query($qr_text);	
-mysql_close($connect);    
+$connect = Database::connect();
+$qr=Database::query('set names cp1251');	
+$db=Database::selectDatabase($db_name);	
+$qr=Database::query($qr_text);	
+Database::close($connect);    
 }
 }
 }
@@ -1681,7 +1682,7 @@ if ($res[0] == '1')
 echo "<table><tr><td valign='top'>";
 $datkon=date("d");
 $datkon1=date("Ymd");
-$qr=mysql_query("SELECT * FROM news WHERE newsrash>='$datkon1' order by id DESC");
+$qr=Database::query(Database::statement('SELECT * FROM news WHERE newsrash>=? order by id DESC', [($datkon1)]));
 
 echo '
 <div id="container">
@@ -1690,7 +1691,7 @@ echo '
 <div class="preload"><div></div></div>
  <!-- MAIN CONTENT --> 
   <div class="lof-main-wapper">';
-while ($news = mysql_fetch_row($qr))
+while ($news = Database::fetchRow($qr))
 {
 
 
@@ -1723,9 +1724,9 @@ echo '
   		<ul class="lof-navigator">
 
 ';
-$qrss=mysql_query("SELECT * FROM news WHERE newsrash>='$datkon1' order by id DESC");
-//$qrss=mysql_query('SELECT * FROM news WHERE newsrash>='.$datkon.' order by id DESC');
-while ($newss = mysql_fetch_row($qrss))
+$qrss=Database::query(Database::statement('SELECT * FROM news WHERE newsrash>=? order by id DESC', [($datkon1)]));
+//$qrss=Database::query('SELECT * FROM news WHERE newsrash>='.$datkon.' order by id DESC');
+while ($newss = Database::fetchRow($qrss))
 {
 
 
@@ -1768,18 +1769,18 @@ echo '
 <!------------------------------------- Именинники=1 ------------------------------------------------->
 
 <?php /*
-$sql = mysql_query("SELECT * FROM `dr` WHERE id");
-while ($row = mysql_fetch_row($sql))
+$sql = Database::query("SELECT * FROM `dr` WHERE id");
+while ($row = Database::fetchRow($sql))
 if ($row[1]==2)
 {
 	echo"<td valign='top' class='ottt1'><table cellpadding='0' cellspacing='0' border='0' >";
 	echo"<tr><td class='mail1' align='left'>";
-	$sqls = mysql_query("SELECT * FROM `richstone_katalog` WHERE (`radiobutton` between 1 and 5)");
+	$sqls = Database::query("SELECT * FROM `richstone_katalog` WHERE (`radiobutton` between 1 and 5)");
  
  
- for ($i=0; $i<($rows = mysql_fetch_assoc($sqls)); $i++) 
+ for ($i=0; $i<($rows = Database::fetchAssoc($sqls)); $i++) 
  {
- $dd=$rows['dr'];
+ $dd = $rows['dr'] ?? '';
  $cut = substr($dd, 0, 6);
  $d=date('d.m.');
  
@@ -1826,7 +1827,7 @@ if ($row[1]==2)
    <tr>
  <td class='mail1'><b>Поздравляем!!!</b>
  <a class=highslide onclick=\"return hs.htmlExpand(this, { objectType: 'iframe' } )\" href='dp.php?code=$rows[id]'></a>";
- $ipus=$_SERVER["REMOTE_ADDR"];
+ $ipus = $_SERVER["REMOTE_ADDR"] ?? '';
  echo "</td></tr></table><br>";
  }
  //}else {echo "Больше трех";}
@@ -1838,48 +1839,49 @@ if ($row[1]==2)
  echo"<td valign='top' class='ottt1'><table cellpadding='0' cellspacing='0' border='0' >";
  echo"<tr><td class='mail1' align='left'>";
 
- $sqls = mysql_query("SELECT * FROM `richstone_katalog` WHERE (`radiobutton` between 1 and 5)");
+ $sqls = Database::query("SELECT * FROM `richstone_katalog` WHERE (`radiobutton` between 1 and 5)");
  
- if ($tom_date!==$cut)
+ $tom_date = date('d.m.', strtotime('tomorrow'));
+if ($tom_date !== ($cut ?? ''))
  {  
  echo"<tr><td class='mail1' align='left'>Завтра день рождения празднуют:</td></tr>";
  }
  
-	  while ($rows = mysql_fetch_assoc($sqls)) {
+	  while ($rows = Database::fetchAssoc($sqls)) {
  $tomm_date=time()+60*60*24;
  $tom_date=date("d.m.",$tomm_date);
- $dd=$rows['dr'];
+ $dd = $rows['dr'] ?? '';
  $cut = substr($dd, 0, 6);
  if ($tom_date==$cut)
  {
  echo "<tr><td class='mail3'><b>".$rows['lname']."&nbsp".$rows['fname']."&nbsp".$rows['name']."</b> - (".$rows['otdel'].")";
- $ipus=$_SERVER["REMOTE_ADDR"];
+ $ipus = $_SERVER["REMOTE_ADDR"] ?? '';
  echo "</td></tr>";
  }
  }
  echo"<tr><td class='mail1' align='left'><br>В ближайшие 3 дня, день рождения празднуют:</td></tr>";
- $sqls = mysql_query("SELECT * FROM `richstone_katalog` WHERE (`radiobutton` between 1 and 5) ORDER BY dr ASC");
- while ($rows = mysql_fetch_assoc($sqls)) {
+ $sqls = Database::query("SELECT * FROM `richstone_katalog` WHERE (`radiobutton` between 1 and 5) ORDER BY dr ASC");
+ while ($rows = Database::fetchAssoc($sqls)) {
  $tomm_date=time()+((60*60*24)*2);
  $tom_date=date("d.m.",$tomm_date);
- $dd=$rows['dr'];
+ $dd = $rows['dr'] ?? '';
  $cut = substr($dd, 0, 6);
  if ($tom_date==$cut)
  {
  echo "<tr><td class='mail3'><b>".$rows['lname']."&nbsp".$rows['fname']."&nbsp".$rows['name']."</b> - (".$rows['otdel'].")";
  
- $ipus=$_SERVER["REMOTE_ADDR"];
+ $ipus = $_SERVER["REMOTE_ADDR"] ?? '';
  
  echo "</td></tr>";
  }
  $tomm_date=time()+((60*60*24)*3);
  $tom_date=date("d.m.",$tomm_date);
- $dd=$rows['dr'];
+ $dd = $rows['dr'] ?? '';
  $cut = substr($dd, 0, 6);
  if ($tom_date==$cut)
  {
  echo "<tr><td class='mail3'><b>".$rows['lname']."&nbsp".$rows['fname']."&nbsp".$rows['name']."</b> - (".$rows['otdel'].")";
- $ipus=$_SERVER["REMOTE_ADDR"];
+ $ipus = $_SERVER["REMOTE_ADDR"] ?? '';
  echo "</td></tr>";
  }
  }
@@ -1891,12 +1893,12 @@ if ($row[1]==2)
 elseif($row[1]==3){
 	echo"<td valign='top' class='ottt1'><table cellpadding='0' cellspacing='0' border='0' >";
 	echo"<tr><td class='mail1' align='left'>";
-	$sqls = mysql_query("SELECT * FROM `richstone_katalog` WHERE (`radiobutton` between 1 and 5)");
+	$sqls = Database::query("SELECT * FROM `richstone_katalog` WHERE (`radiobutton` between 1 and 5)");
  
  
- for ($i=0; $i<($rows = mysql_fetch_assoc($sqls)); $i++) 
+ for ($i=0; $i<($rows = Database::fetchAssoc($sqls)); $i++) 
  {
- $dd=$rows['dr'];
+ $dd = $rows['dr'] ?? '';
  $cut = substr($dd, 0, 6);
  $d=date('d.m.');
  
@@ -1943,28 +1945,29 @@ elseif($row[1]==3){
    <tr>
  <td class='mail1'><b>Поздравляем!!!</b>
  <a class=highslide onclick=\"return hs.htmlExpand(this, { objectType: 'iframe' } )\" href='dp.php?code=$rows[id]'></a>";
- $ipus=$_SERVER["REMOTE_ADDR"];
+ $ipus = $_SERVER["REMOTE_ADDR"] ?? '';
  echo "</td></tr></table><br>";
  }
  //}else {echo "Больше трех";}
  }
 
- $sqls = mysql_query("SELECT * FROM `richstone_katalog` WHERE (`radiobutton` between 1 and 5)");
+ $sqls = Database::query("SELECT * FROM `richstone_katalog` WHERE (`radiobutton` between 1 and 5)");
  
- if ($tom_date!==$cut)
+ $tom_date = date('d.m.', strtotime('tomorrow'));
+if ($tom_date !== ($cut ?? ''))
  {  
  echo"<tr><td class='mail1' align='left'>Завтра день рождения празднуют:</td></tr>";
  }
  
-	  while ($rows = mysql_fetch_assoc($sqls)) {
+	  while ($rows = Database::fetchAssoc($sqls)) {
  $tomm_date=time()+60*60*24;
  $tom_date=date("d.m.",$tomm_date);
- $dd=$rows['dr'];
+ $dd = $rows['dr'] ?? '';
  $cut = substr($dd, 0, 6);
  if ($tom_date==$cut)
  {
  echo "<tr><td class='mail3'><b>".$rows['lname']."&nbsp".$rows['fname']."&nbsp".$rows['name']."</b> - (".$rows['otdel'].")";
- $ipus=$_SERVER["REMOTE_ADDR"];
+ $ipus = $_SERVER["REMOTE_ADDR"] ?? '';
  echo "</td></tr>";
  }
  }
@@ -1976,28 +1979,28 @@ elseif($row[1]==3){
  echo"<tr><td class='mail1' align='left'>";
 
  echo"<tr><td class='mail1' align='left'><br>В ближайшие 3 дня, день рождения празднуют:</td></tr>";
- $sqls = mysql_query("SELECT * FROM `richstone_katalog` WHERE (`radiobutton` between 1 and 5) ORDER BY dr ASC");
- while ($rows = mysql_fetch_assoc($sqls)) {
+ $sqls = Database::query("SELECT * FROM `richstone_katalog` WHERE (`radiobutton` between 1 and 5) ORDER BY dr ASC");
+ while ($rows = Database::fetchAssoc($sqls)) {
  $tomm_date=time()+((60*60*24)*2);
  $tom_date=date("d.m.",$tomm_date);
- $dd=$rows['dr'];
+ $dd = $rows['dr'] ?? '';
  $cut = substr($dd, 0, 6);
  if ($tom_date==$cut)
  {
  echo "<tr><td class='mail3'><b>".$rows['lname']."&nbsp".$rows['fname']."&nbsp".$rows['name']."</b> - (".$rows['otdel'].")";
  
- $ipus=$_SERVER["REMOTE_ADDR"];
+ $ipus = $_SERVER["REMOTE_ADDR"] ?? '';
  
  echo "</td></tr>";
  }
  $tomm_date=time()+((60*60*24)*3);
  $tom_date=date("d.m.",$tomm_date);
- $dd=$rows['dr'];
+ $dd = $rows['dr'] ?? '';
  $cut = substr($dd, 0, 6);
  if ($tom_date==$cut)
  {
  echo "<tr><td class='mail3'><b>".$rows['lname']."&nbsp".$rows['fname']."&nbsp".$rows['name']."</b> - (".$rows['otdel'].")";
- $ipus=$_SERVER["REMOTE_ADDR"];
+ $ipus = $_SERVER["REMOTE_ADDR"] ?? '';
  echo "</td></tr>";
  }
  }
@@ -2012,12 +2015,12 @@ else
 	echo"<td valign='top' class='ottt1'><table cellpadding='0' cellspacing='0' border='0' >";
 
 	echo"<tr><td class='mail1' align='left'>";
-	$sqls = mysql_query("SELECT * FROM `richstone_katalog` WHERE (`radiobutton` between 1 and 5)");
+	$sqls = Database::query("SELECT * FROM `richstone_katalog` WHERE (`radiobutton` between 1 and 5)");
  
  
- for ($i=0; $i<($rows = mysql_fetch_assoc($sqls)); $i++) 
+ for ($i=0; $i<($rows = Database::fetchAssoc($sqls)); $i++) 
  {
- $dd=$rows['dr'];
+ $dd = $rows['dr'] ?? '';
  $cut = substr($dd, 0, 6);
  $d=date('d.m.');
  
@@ -2064,7 +2067,7 @@ else
    <tr>
  <td class='mail1'><b>Поздравляем!!!</b>
  <a class=highslide onclick=\"return hs.htmlExpand(this, { objectType: 'iframe' } )\" href='dp.php?code=$rows[id]'></a>";
- $ipus=$_SERVER["REMOTE_ADDR"];
+ $ipus = $_SERVER["REMOTE_ADDR"] ?? '';
  echo "</td></tr></table><br>";
  }
  //}else {echo "Больше трех";}
@@ -2073,46 +2076,47 @@ else
  echo "</td></tr>";
  
  //echo"<tr><td class='mail1' align='left'>Завтра день рождения празднуют:</td></tr>";
- $sqls = mysql_query("SELECT * FROM `richstone_katalog` WHERE (`radiobutton` between 1 and 5)");
+ $sqls = Database::query("SELECT * FROM `richstone_katalog` WHERE (`radiobutton` between 1 and 5)");
  
- if ($tom_date!==$cut)
+ $tom_date = date('d.m.', strtotime('tomorrow'));
+if ($tom_date !== ($cut ?? ''))
  {  
  echo"<tr><strong><td class='mail1' align='left'>Завтра день рождения празднуют:</td></strong></tr>";
  }
- while ($rows = mysql_fetch_assoc($sqls)) {
+ while ($rows = Database::fetchAssoc($sqls)) {
  $tomm_date=time()+60*60*24;
  $tom_date=date("d.m.",$tomm_date);
- $dd=$rows['dr'];
+ $dd = $rows['dr'] ?? '';
  $cut = substr($dd, 0, 6);
  if ($tom_date==$cut)
  {
  echo "<tr><td class='mail3'><b>".$rows['lname']."&nbsp".$rows['fname']."&nbsp".$rows['name']."</b> - (".$rows['otdel'].")";
- $ipus=$_SERVER["REMOTE_ADDR"];
+ $ipus = $_SERVER["REMOTE_ADDR"] ?? '';
  echo "</td></tr>";
  }}
  echo"<tr><td class='mail1' align='left'>";
  echo"<tr><td class='mail1' align='left'><br>В ближайшие 3 дня, день рождения празднуют:</td></tr>";
- $sqls = mysql_query("SELECT * FROM `richstone_katalog` WHERE (`radiobutton` between 1 and 5) ORDER BY dr ASC");
-	while ($rows = mysql_fetch_assoc($sqls))
+ $sqls = Database::query("SELECT * FROM `richstone_katalog` WHERE (`radiobutton` between 1 and 5) ORDER BY dr ASC");
+	while ($rows = Database::fetchAssoc($sqls))
  {
  $tomm_date=time()+((60*60*24)*2);
  $tom_date=date("d.m.",$tomm_date);
- $dd=$rows['dr'];
+ $dd = $rows['dr'] ?? '';
  $cut = substr($dd, 0, 6);
  if ($tom_date==$cut)
  {
  echo "<tr><td class='mail3'><b>".$rows['lname']."&nbsp".$rows['fname']."&nbsp".$rows['name']."</b> - (".$rows['otdel'].")";
- $ipus=$_SERVER["REMOTE_ADDR"];
+ $ipus = $_SERVER["REMOTE_ADDR"] ?? '';
  echo "</td></tr>";
  }
  $tomm_date=time()+((60*60*24)*3);
  $tom_date=date("d.m.",$tomm_date);
- $dd=$rows['dr'];
+ $dd = $rows['dr'] ?? '';
  $cut = substr($dd, 0, 6);
  if ($tom_date==$cut)
  {
  echo "<tr><td class='mail3'><b>".$rows['lname']."&nbsp".$rows['fname']."&nbsp".$rows['name']."</b> - (".$rows['otdel'].")";
- $ipus=$_SERVER["REMOTE_ADDR"];
+ $ipus = $_SERVER["REMOTE_ADDR"] ?? '';
  echo "</td></tr>";
  }}
  echo "</table>";
@@ -2122,46 +2126,47 @@ else
 
 /*
 //echo"<tr><td class='mail1' align='left'>Завтра день рождения празднуют:</td></tr>";
-$sqls = mysql_query("SELECT * FROM `richstone_katalog` WHERE (`radiobutton` between 1 and 5)");
+$sqls = Database::query("SELECT * FROM `richstone_katalog` WHERE (`radiobutton` between 1 and 5)");
 
-if ($tom_date!==$cut)
+$tom_date = date('d.m.', strtotime('tomorrow'));
+if ($tom_date !== ($cut ?? ''))
 {  
 echo"<tr><strong><td class='mail1' align='left'>Завтра день рождения празднуют:</td></strong></tr>";
 }
-while ($rows = mysql_fetch_assoc($sqls)) {
+while ($rows = Database::fetchAssoc($sqls)) {
 $tomm_date=time()+60*60*24;
 $tom_date=date("d.m.",$tomm_date);
-$dd=$rows['dr'];
+$dd = $rows['dr'] ?? '';
 $cut = substr($dd, 0, 6);
 if ($tom_date==$cut)
 {
 echo "<tr><td class='mail3'><b>".$rows['lname']."&nbsp".$rows['fname']."&nbsp".$rows['name']."</b> - (".$rows['otdel'].")";
-$ipus=$_SERVER["REMOTE_ADDR"];
+$ipus = $_SERVER["REMOTE_ADDR"] ?? '';
 echo "</td></tr>";
 }}
 echo"<tr><td class='mail1' align='left'>";
 echo"<tr><td class='mail1' align='left'><br>В ближайшие 3 дня, день рождения празднуют:</td></tr>";
-$sqls = mysql_query("SELECT * FROM `richstone_katalog` WHERE (`radiobutton` between 1 and 5) ORDER BY dr ASC");
-   while ($rows = mysql_fetch_assoc($sqls))
+$sqls = Database::query("SELECT * FROM `richstone_katalog` WHERE (`radiobutton` between 1 and 5) ORDER BY dr ASC");
+   while ($rows = Database::fetchAssoc($sqls))
 {
 $tomm_date=time()+((60*60*24)*2);
 $tom_date=date("d.m.",$tomm_date);
-$dd=$rows['dr'];
+$dd = $rows['dr'] ?? '';
 $cut = substr($dd, 0, 6);
 if ($tom_date==$cut)
 {
 echo "<tr><td class='mail3'><b>".$rows['lname']."&nbsp".$rows['fname']."&nbsp".$rows['name']."</b> - (".$rows['otdel'].")";
-$ipus=$_SERVER["REMOTE_ADDR"];
+$ipus = $_SERVER["REMOTE_ADDR"] ?? '';
 echo "</td></tr>";
 }
 $tomm_date=time()+((60*60*24)*3);
 $tom_date=date("d.m.",$tomm_date);
-$dd=$rows['dr'];
+$dd = $rows['dr'] ?? '';
 $cut = substr($dd, 0, 6);
 if ($tom_date==$cut)
 {
 echo "<tr><td class='mail3'><b>".$rows['lname']."&nbsp".$rows['fname']."&nbsp".$rows['name']."</b> - (".$rows['otdel'].")";
-$ipus=$_SERVER["REMOTE_ADDR"];
+$ipus = $_SERVER["REMOTE_ADDR"] ?? '';
 echo "</td></tr>";
 }}
 echo "</table>";*/
@@ -2205,16 +2210,16 @@ $end = strtotime('2025-05-28 00:03:00');
 $current_time = time(); // Get the current time
  
 if ($current_time < $start) {
-    $sql = mysql_query("SELECT * FROM `dr` WHERE id");
-	while ($row = mysql_fetch_row($sql))
+    $sql = Database::query("SELECT * FROM `dr` WHERE id");
+	while ($row = Database::fetchRow($sql))
 	echo"<td valign='top' class='ottt1'><table cellpadding='0' cellspacing='0' border='0' >";
 		echo"<tr><td class='mail1' align='left'>";
-		$sqls = mysql_query("SELECT * FROM `richstone_katalog` WHERE (`radiobutton` between 1 and 5)");
+		$sqls = Database::query("SELECT * FROM `richstone_katalog` WHERE (`radiobutton` between 1 and 5)");
 	 
 	 
-	 for ($i=0; $i<($rows = mysql_fetch_assoc($sqls)); $i++) 
+	 for ($i=0; $i<($rows = Database::fetchAssoc($sqls)); $i++) 
 	 {
-	 $dd=$rows['dr'];
+	 $dd = $rows['dr'] ?? '';
 	 $cut = substr($dd, 0, 6);
 	 $d=date('d.m.');
 	 
@@ -2261,28 +2266,29 @@ if ($current_time < $start) {
 	   <tr>
 	 <td class='mail1'><b>Поздравляем!!!</b>
 	 <a class=highslide onclick=\"return hs.htmlExpand(this, { objectType: 'iframe' } )\" href='dp.php?code=$rows[id]'></a>";
-	 $ipus=$_SERVER["REMOTE_ADDR"];
+	 $ipus = $_SERVER["REMOTE_ADDR"] ?? '';
 	 echo "</td></tr></table><br>";
 	 }
 	 //}else {echo "Больше трех";}
 	 }
 	
-	 $sqls = mysql_query("SELECT * FROM `richstone_katalog` WHERE (`radiobutton` between 1 and 5)");
+	 $sqls = Database::query("SELECT * FROM `richstone_katalog` WHERE (`radiobutton` between 1 and 5)");
 	 
-	 if ($tom_date!==$cut)
+	 $tom_date = date('d.m.', strtotime('tomorrow'));
+if ($tom_date !== ($cut ?? ''))
 	 {  
 	 echo"<tr><td class='mail1' align='left'>.Завтра день рождения празднуют:</td></tr>";
 	 }
 	 
-		  while ($rows = mysql_fetch_assoc($sqls)) {
+		  while ($rows = Database::fetchAssoc($sqls)) {
 	 $tomm_date=time()+60*60*24;
 	 $tom_date=date("d.m.",$tomm_date);
-	 $dd=$rows['dr'];
+	 $dd = $rows['dr'] ?? '';
 	 $cut = substr($dd, 0, 6);
 	 if ($tom_date==$cut)
 	 {
 	 echo "<tr><td class='mail3'><b>".$rows['lname']."&nbsp".$rows['fname']."&nbsp".$rows['name']."</b> - (".$rows['otdel'].")";
-	 $ipus=$_SERVER["REMOTE_ADDR"];
+	 $ipus = $_SERVER["REMOTE_ADDR"] ?? '';
 	 echo "</td></tr>";
 	 }
 	 }
@@ -2294,28 +2300,28 @@ if ($current_time < $start) {
 	 echo"<tr><td class='mail1' align='left'>";
 	
 	 echo"<tr><td class='mail1' align='left'><br>В ближайшие 3 дня, день рождения празднуют:</td></tr>";
-	 $sqls = mysql_query("SELECT * FROM `richstone_katalog` WHERE (`radiobutton` between 1 and 5) ORDER BY dr ASC");
-	 while ($rows = mysql_fetch_assoc($sqls)) {
+	 $sqls = Database::query("SELECT * FROM `richstone_katalog` WHERE (`radiobutton` between 1 and 5) ORDER BY dr ASC");
+	 while ($rows = Database::fetchAssoc($sqls)) {
 	 $tomm_date=time()+((60*60*24)*2);
 	 $tom_date=date("d.m.",$tomm_date);
-	 $dd=$rows['dr'];
+	 $dd = $rows['dr'] ?? '';
 	 $cut = substr($dd, 0, 6);
 	 if ($tom_date==$cut)
 	 {
 	 echo "<tr><td class='mail3'><b>".$rows['lname']."&nbsp".$rows['fname']."&nbsp".$rows['name']."</b> - (".$rows['otdel'].")";
 	 
-	 $ipus=$_SERVER["REMOTE_ADDR"];
+	 $ipus = $_SERVER["REMOTE_ADDR"] ?? '';
 	 
 	 echo "</td></tr>";
 	 }
 	 $tomm_date=time()+((60*60*24)*3);
 	 $tom_date=date("d.m.",$tomm_date);
-	 $dd=$rows['dr'];
+	 $dd = $rows['dr'] ?? '';
 	 $cut = substr($dd, 0, 6);
 	 if ($tom_date==$cut)
 	 {
 	 echo "<tr><td class='mail3'><b>".$rows['lname']."&nbsp".$rows['fname']."&nbsp".$rows['name']."</b> - (".$rows['otdel'].")";
-	 $ipus=$_SERVER["REMOTE_ADDR"];
+	 $ipus = $_SERVER["REMOTE_ADDR"] ?? '';
 	 echo "</td></tr>";
 	 }
 	 }
@@ -2323,16 +2329,16 @@ if ($current_time < $start) {
 	 echo "</table>";
 } 
 else if ($current_time >= $start && $current_time < $pro7) {
-    $sql = mysql_query("SELECT * FROM `dr` WHERE id");
-	while ($row = mysql_fetch_row($sql))
+    $sql = Database::query("SELECT * FROM `dr` WHERE id");
+	while ($row = Database::fetchRow($sql))
 	echo"<td valign='top' class='ottt1'><table cellpadding='0' cellspacing='0' border='0' >";
 		echo"<tr><td class='mail1' align='left'>";
-		$sqls = mysql_query("SELECT * FROM `richstone_katalog` WHERE (`radiobutton` between 1 and 5)");
+		$sqls = Database::query("SELECT * FROM `richstone_katalog` WHERE (`radiobutton` between 1 and 5)");
 	 
 	 
-	 for ($i=0; $i<($rows = mysql_fetch_assoc($sqls)); $i++) 
+	 for ($i=0; $i<($rows = Database::fetchAssoc($sqls)); $i++) 
 	 {
-	 $dd=$rows['dr'];
+	 $dd = $rows['dr'] ?? '';
 	 $cut = substr($dd, 0, 6);
 	 $d=date('d.m.');
 	 
@@ -2379,28 +2385,29 @@ else if ($current_time >= $start && $current_time < $pro7) {
 	   <tr>
 	 <td class='mail1'><b>Поздравляем!!!</b>
 	 <a class=highslide onclick=\"return hs.htmlExpand(this, { objectType: 'iframe' } )\" href='dp.php?code=$rows[id]'></a>";
-	 $ipus=$_SERVER["REMOTE_ADDR"];
+	 $ipus = $_SERVER["REMOTE_ADDR"] ?? '';
 	 echo "</td></tr></table><br>";
 	 }
 	 //}else {echo "Больше трех";}
 	 }
 	
-	 $sqls = mysql_query("SELECT * FROM `richstone_katalog` WHERE (`radiobutton` between 1 and 5)");
+	 $sqls = Database::query("SELECT * FROM `richstone_katalog` WHERE (`radiobutton` between 1 and 5)");
 	 
-	 if ($tom_date!==$cut)
+	 $tom_date = date('d.m.', strtotime('tomorrow'));
+if ($tom_date !== ($cut ?? ''))
 	 {  
 	 echo"<tr><td class='mail1' align='left'>Завтра день рождения празднуют:</td></tr>";
 	 }
 	 
-		  while ($rows = mysql_fetch_assoc($sqls)) {
+		  while ($rows = Database::fetchAssoc($sqls)) {
 	 $tomm_date=time()+60*60*24;
 	 $tom_date=date("d.m.",$tomm_date);
-	 $dd=$rows['dr'];
+	 $dd = $rows['dr'] ?? '';
 	 $cut = substr($dd, 0, 6);
 	 if ($tom_date==$cut)
 	 {
 	 echo "<tr><td class='mail3'><b>".$rows['lname']."&nbsp".$rows['fname']."&nbsp".$rows['name']."</b> - (".$rows['otdel'].")";
-	 $ipus=$_SERVER["REMOTE_ADDR"];
+	 $ipus = $_SERVER["REMOTE_ADDR"] ?? '';
 	 echo "</td></tr>";
 	 }
 	 }
@@ -2412,28 +2419,28 @@ else if ($current_time >= $start && $current_time < $pro7) {
 	 echo"<tr><td class='mail1' align='left'>";
 	
 	 echo"<tr><td class='mail1' align='left'><br>В ближайшие 3 дня, день рождения празднуют:</td></tr>";
-	 $sqls = mysql_query("SELECT * FROM `richstone_katalog` WHERE (`radiobutton` between 1 and 5) ORDER BY dr ASC");
-	 while ($rows = mysql_fetch_assoc($sqls)) {
+	 $sqls = Database::query("SELECT * FROM `richstone_katalog` WHERE (`radiobutton` between 1 and 5) ORDER BY dr ASC");
+	 while ($rows = Database::fetchAssoc($sqls)) {
 	 $tomm_date=time()+((60*60*24)*2);
 	 $tom_date=date("d.m.",$tomm_date);
-	 $dd=$rows['dr'];
+	 $dd = $rows['dr'] ?? '';
 	 $cut = substr($dd, 0, 6);
 	 if ($tom_date==$cut)
 	 {
 	 echo "<tr><td class='mail3'><b>".$rows['lname']."&nbsp".$rows['fname']."&nbsp".$rows['name']."</b> - (".$rows['otdel'].")";
 	 
-	 $ipus=$_SERVER["REMOTE_ADDR"];
+	 $ipus = $_SERVER["REMOTE_ADDR"] ?? '';
 	 
 	 echo "</td></tr>";
 	 }
 	 $tomm_date=time()+((60*60*24)*3);
 	 $tom_date=date("d.m.",$tomm_date);
-	 $dd=$rows['dr'];
+	 $dd = $rows['dr'] ?? '';
 	 $cut = substr($dd, 0, 6);
 	 if ($tom_date==$cut)
 	 {
 	 echo "<tr><td class='mail3'><b>".$rows['lname']."&nbsp".$rows['fname']."&nbsp".$rows['name']."</b> - (".$rows['otdel'].")";
-	 $ipus=$_SERVER["REMOTE_ADDR"];
+	 $ipus = $_SERVER["REMOTE_ADDR"] ?? '';
 	 echo "</td></tr>";
 	 }
 	 }
@@ -2441,16 +2448,16 @@ else if ($current_time >= $start && $current_time < $pro7) {
 	 echo "</table>";
 }
  else if ($current_time >= $pro7 && $current_time <= $pro8) {
-    $sql = mysql_query("SELECT * FROM `dr` WHERE id");
-	while ($row = mysql_fetch_row($sql))
+    $sql = Database::query("SELECT * FROM `dr` WHERE id");
+	while ($row = Database::fetchRow($sql))
 	echo"<td valign='top' class='ottt1'><table cellpadding='0' cellspacing='0' border='0' >";
 		echo"<tr><td class='mail1' align='left'>";
-		$sqls = mysql_query("SELECT * FROM `richstone_katalog` WHERE (`radiobutton` between 1 and 5)");
+		$sqls = Database::query("SELECT * FROM `richstone_katalog` WHERE (`radiobutton` between 1 and 5)");
 	 
 	 
-	 for ($i=0; $i<($rows = mysql_fetch_assoc($sqls)); $i++) 
+	 for ($i=0; $i<($rows = Database::fetchAssoc($sqls)); $i++) 
 	 {
-	 $dd=$rows['dr'];
+	 $dd = $rows['dr'] ?? '';
 	 $cut = substr($dd, 0, 6);
 	 $d=date('d.m.');
 	 
@@ -2497,28 +2504,29 @@ else if ($current_time >= $start && $current_time < $pro7) {
 	   <tr>
 	 <td class='mail1'><b>Поздравляем!!!</b>
 	 <a class=highslide onclick=\"return hs.htmlExpand(this, { objectType: 'iframe' } )\" href='dp.php?code=$rows[id]'></a>";
-	 $ipus=$_SERVER["REMOTE_ADDR"];
+	 $ipus = $_SERVER["REMOTE_ADDR"] ?? '';
 	 echo "</td></tr></table><br>";
 	 }
 	 //}else {echo "Больше трех";}
 	 }
 	
-	 $sqls = mysql_query("SELECT * FROM `richstone_katalog` WHERE (`radiobutton` between 1 and 5)");
+	 $sqls = Database::query("SELECT * FROM `richstone_katalog` WHERE (`radiobutton` between 1 and 5)");
 	 
-	 if ($tom_date!==$cut)
+	 $tom_date = date('d.m.', strtotime('tomorrow'));
+if ($tom_date !== ($cut ?? ''))
 	 {  
 	 echo"<tr><td class='mail1' align='left'>Завтра день рождения празднуют:</td></tr>";
 	 }
 	 
-		  while ($rows = mysql_fetch_assoc($sqls)) {
+		  while ($rows = Database::fetchAssoc($sqls)) {
 	 $tomm_date=time()+60*60*24;
 	 $tom_date=date("d.m.",$tomm_date);
-	 $dd=$rows['dr'];
+	 $dd = $rows['dr'] ?? '';
 	 $cut = substr($dd, 0, 6);
 	 if ($tom_date==$cut)
 	 {
 	 echo "<tr><td class='mail3'><b>".$rows['lname']."&nbsp".$rows['fname']."&nbsp".$rows['name']."</b> - (".$rows['otdel'].")";
-	 $ipus=$_SERVER["REMOTE_ADDR"];
+	 $ipus = $_SERVER["REMOTE_ADDR"] ?? '';
 	 echo "</td></tr>";
 	 }
 	 }
@@ -2530,28 +2538,28 @@ else if ($current_time >= $start && $current_time < $pro7) {
 	 echo"<tr><td class='mail1' align='left'>";
 	
 	 echo"<tr><td class='mail1' align='left'><br>В ближайшие 3 дня, день рождения празднуют:</td></tr>";
-	 $sqls = mysql_query("SELECT * FROM `richstone_katalog` WHERE (`radiobutton` between 1 and 5) ORDER BY dr ASC");
-	 while ($rows = mysql_fetch_assoc($sqls)) {
+	 $sqls = Database::query("SELECT * FROM `richstone_katalog` WHERE (`radiobutton` between 1 and 5) ORDER BY dr ASC");
+	 while ($rows = Database::fetchAssoc($sqls)) {
 	 $tomm_date=time()+((60*60*24)*2);
 	 $tom_date=date("d.m.",$tomm_date);
-	 $dd=$rows['dr'];
+	 $dd = $rows['dr'] ?? '';
 	 $cut = substr($dd, 0, 6);
 	 if ($tom_date==$cut)
 	 {
 	 echo "<tr><td class='mail3'><b>".$rows['lname']."&nbsp".$rows['fname']."&nbsp".$rows['name']."</b> - (".$rows['otdel'].")";
 	 
-	 $ipus=$_SERVER["REMOTE_ADDR"];
+	 $ipus = $_SERVER["REMOTE_ADDR"] ?? '';
 	 
 	 echo "</td></tr>";
 	 }
 	 $tomm_date=time()+((60*60*24)*3);
 	 $tom_date=date("d.m.",$tomm_date);
-	 $dd=$rows['dr'];
+	 $dd = $rows['dr'] ?? '';
 	 $cut = substr($dd, 0, 6);
 	 if ($tom_date==$cut)
 	 {
 	 echo "<tr><td class='mail3'><b>".$rows['lname']."&nbsp".$rows['fname']."&nbsp".$rows['name']."</b> - (".$rows['otdel'].")";
-	 $ipus=$_SERVER["REMOTE_ADDR"];
+	 $ipus = $_SERVER["REMOTE_ADDR"] ?? '';
 	 echo "</td></tr>";
 	 }
 	 }
@@ -2559,17 +2567,17 @@ else if ($current_time >= $start && $current_time < $pro7) {
 	 echo "</table>";
 } 
  else if ($current_time >= $pro8 && $current_time <= $pro9) {
-    $sql = mysql_query("SELECT * FROM `dr` WHERE id");
-	while ($row = mysql_fetch_row($sql))
+    $sql = Database::query("SELECT * FROM `dr` WHERE id");
+	while ($row = Database::fetchRow($sql))
 echo"<td valign='top' class='ottt1'><table cellpadding='0' cellspacing='0' border='0' >";
 	
 		echo"<tr><td class='mail1' align='left'>";
-		$sqls = mysql_query("SELECT * FROM `richstone_katalog` WHERE (`radiobutton` between 1 and 5)");
+		$sqls = Database::query("SELECT * FROM `richstone_katalog` WHERE (`radiobutton` between 1 and 5)");
 	 
 	 
-	 for ($i=0; $i<($rows = mysql_fetch_assoc($sqls)); $i++) 
+	 for ($i=0; $i<($rows = Database::fetchAssoc($sqls)); $i++) 
 	 {
-	 $dd=$rows['dr'];
+	 $dd = $rows['dr'] ?? '';
 	 $cut = substr($dd, 0, 6);
 	 $d=date('d.m.');
 	 
@@ -2616,7 +2624,7 @@ echo"<td valign='top' class='ottt1'><table cellpadding='0' cellspacing='0' borde
 	   <tr>
 	 <td class='mail1'><b>Поздравляем!!!</b>
 	 <a class=highslide onclick=\"return hs.htmlExpand(this, { objectType: 'iframe' } )\" href='dp.php?code=$rows[id]'></a>";
-	 $ipus=$_SERVER["REMOTE_ADDR"];
+	 $ipus = $_SERVER["REMOTE_ADDR"] ?? '';
 	 echo "</td></tr></table><br>";
 	 }
 	 //}else {echo "Больше трех";}
@@ -2625,61 +2633,62 @@ echo"<td valign='top' class='ottt1'><table cellpadding='0' cellspacing='0' borde
 	 echo "</td></tr>";
 	 
 	 //echo"<tr><td class='mail1' align='left'>Завтра день рождения празднуют:</td></tr>";
-	 $sqls = mysql_query("SELECT * FROM `richstone_katalog` WHERE (`radiobutton` between 1 and 5)");
+	 $sqls = Database::query("SELECT * FROM `richstone_katalog` WHERE (`radiobutton` between 1 and 5)");
 	 
-	 if ($tom_date!==$cut)
+	 $tom_date = date('d.m.', strtotime('tomorrow'));
+if ($tom_date !== ($cut ?? ''))
 	 {  
 	 echo"<tr><strong><td class='mail1' align='left'>Завтра день рождения празднуют:</td></strong></tr>";
 	 }
-	 while ($rows = mysql_fetch_assoc($sqls)) {
+	 while ($rows = Database::fetchAssoc($sqls)) {
 	 $tomm_date=time()+60*60*24;
 	 $tom_date=date("d.m.",$tomm_date);
-	 $dd=$rows['dr'];
+	 $dd = $rows['dr'] ?? '';
 	 $cut = substr($dd, 0, 6);
 	 if ($tom_date==$cut)
 	 {
 	 echo "<tr><td class='mail3'><b>".$rows['lname']."&nbsp".$rows['fname']."&nbsp".$rows['name']."</b> - (".$rows['otdel'].")";
-	 $ipus=$_SERVER["REMOTE_ADDR"];
+	 $ipus = $_SERVER["REMOTE_ADDR"] ?? '';
 	 echo "</td></tr>";
 	 }}
 	 echo"<tr><td class='mail1' align='left'>";
 	 echo"<tr><td class='mail1' align='left'><br>В ближайшие 3 дня, день рождения празднуют:</td></tr>";
-	 $sqls = mysql_query("SELECT * FROM `richstone_katalog` WHERE (`radiobutton` between 1 and 5) ORDER BY dr ASC");
-		while ($rows = mysql_fetch_assoc($sqls))
+	 $sqls = Database::query("SELECT * FROM `richstone_katalog` WHERE (`radiobutton` between 1 and 5) ORDER BY dr ASC");
+		while ($rows = Database::fetchAssoc($sqls))
 	 {
 	 $tomm_date=time()+((60*60*24)*2);
 	 $tom_date=date("d.m.",$tomm_date);
-	 $dd=$rows['dr'];
+	 $dd = $rows['dr'] ?? '';
 	 $cut = substr($dd, 0, 6);
 	 if ($tom_date==$cut)
 	 {
 	 echo "<tr><td class='mail3'><b>".$rows['lname']."&nbsp".$rows['fname']."&nbsp".$rows['name']."</b> - (".$rows['otdel'].")";
-	 $ipus=$_SERVER["REMOTE_ADDR"];
+	 $ipus = $_SERVER["REMOTE_ADDR"] ?? '';
 	 echo "</td></tr>";
 	 }
 	 $tomm_date=time()+((60*60*24)*3);
 	 $tom_date=date("d.m.",$tomm_date);
-	 $dd=$rows['dr'];
+	 $dd = $rows['dr'] ?? '';
 	 $cut = substr($dd, 0, 6);
 	 if ($tom_date==$cut)
 	 {
 	 echo "<tr><td class='mail3'><b>".$rows['lname']."&nbsp".$rows['fname']."&nbsp".$rows['name']."</b> - (".$rows['otdel'].")";
-	 $ipus=$_SERVER["REMOTE_ADDR"];
+	 $ipus = $_SERVER["REMOTE_ADDR"] ?? '';
 	 echo "</td></tr>";
 	 }}
 	 echo "</table>";
 } 
  else if ($current_time >= $pro9 && $current_time <= $pro10) {
-    $sql = mysql_query("SELECT * FROM `dr` WHERE id");
-	while ($row = mysql_fetch_row($sql))
+    $sql = Database::query("SELECT * FROM `dr` WHERE id");
+	while ($row = Database::fetchRow($sql))
 		echo"<td valign='top' class='ottt1'><table cellpadding='0' cellspacing='0' border='0' >";
 		echo"<tr><td class='mail1' align='left'>";
-		$sqls = mysql_query("SELECT * FROM `richstone_katalog` WHERE (`radiobutton` between 1 and 5)");
+		$sqls = Database::query("SELECT * FROM `richstone_katalog` WHERE (`radiobutton` between 1 and 5)");
 	 
 	 
-	 for ($i=0; $i<($rows = mysql_fetch_assoc($sqls)); $i++) 
+	 for ($i=0; $i<($rows = Database::fetchAssoc($sqls)); $i++) 
 	 {
-	 $dd=$rows['dr'];
+	 $dd = $rows['dr'] ?? '';
 	 $cut = substr($dd, 0, 6);
 	 $d=date('d.m.');
 	 
@@ -2726,7 +2735,7 @@ echo"<td valign='top' class='ottt1'><table cellpadding='0' cellspacing='0' borde
 	   <tr>
 	 <td class='mail1'><b>Поздравляем!!!</b>
 	 <a class=highslide onclick=\"return hs.htmlExpand(this, { objectType: 'iframe' } )\" href='dp.php?code=$rows[id]'></a>";
-	 $ipus=$_SERVER["REMOTE_ADDR"];
+	 $ipus = $_SERVER["REMOTE_ADDR"] ?? '';
 	 echo "</td></tr></table><br>";
 	 }
 	 //}else {echo "Больше трех";}
@@ -2738,48 +2747,49 @@ echo"<td valign='top' class='ottt1'><table cellpadding='0' cellspacing='0' borde
 	 echo"<td valign='top' class='ottt1'><table cellpadding='0' cellspacing='0' border='0' >";
 	 echo"<tr><td class='mail1' align='left'>";
 	
-	 $sqls = mysql_query("SELECT * FROM `richstone_katalog` WHERE (`radiobutton` between 1 and 5)");
+	 $sqls = Database::query("SELECT * FROM `richstone_katalog` WHERE (`radiobutton` between 1 and 5)");
 	 
-	 if ($tom_date!==$cut)
+	 $tom_date = date('d.m.', strtotime('tomorrow'));
+if ($tom_date !== ($cut ?? ''))
 	 {  
 	 echo"<tr><td class='mail1' align='left'>Завтра день рождения празднуют:</td></tr>";
 	 }
 	 
-		  while ($rows = mysql_fetch_assoc($sqls)) {
+		  while ($rows = Database::fetchAssoc($sqls)) {
 	 $tomm_date=time()+60*60*24;
 	 $tom_date=date("d.m.",$tomm_date);
-	 $dd=$rows['dr'];
+	 $dd = $rows['dr'] ?? '';
 	 $cut = substr($dd, 0, 6);
 	 if ($tom_date==$cut)
 	 {
 	 echo "<tr><td class='mail3'><b>".$rows['lname']."&nbsp".$rows['fname']."&nbsp".$rows['name']."</b> - (".$rows['otdel'].")";
-	 $ipus=$_SERVER["REMOTE_ADDR"];
+	 $ipus = $_SERVER["REMOTE_ADDR"] ?? '';
 	 echo "</td></tr>";
 	 }
 	 }
 	 echo"<tr><td class='mail1' align='left'><br>В ближайшие 3 дня, день рождения празднуют:</td></tr>";
-	 $sqls = mysql_query("SELECT * FROM `richstone_katalog` WHERE (`radiobutton` between 1 and 5) ORDER BY dr ASC");
-	 while ($rows = mysql_fetch_assoc($sqls)) {
+	 $sqls = Database::query("SELECT * FROM `richstone_katalog` WHERE (`radiobutton` between 1 and 5) ORDER BY dr ASC");
+	 while ($rows = Database::fetchAssoc($sqls)) {
 	 $tomm_date=time()+((60*60*24)*2);
 	 $tom_date=date("d.m.",$tomm_date);
-	 $dd=$rows['dr'];
+	 $dd = $rows['dr'] ?? '';
 	 $cut = substr($dd, 0, 6);
 	 if ($tom_date==$cut)
 	 {
 	 echo "<tr><td class='mail3'><b>".$rows['lname']."&nbsp".$rows['fname']."&nbsp".$rows['name']."</b> - (".$rows['otdel'].")";
 	 
-	 $ipus=$_SERVER["REMOTE_ADDR"];
+	 $ipus = $_SERVER["REMOTE_ADDR"] ?? '';
 	 
 	 echo "</td></tr>";
 	 }
 	 $tomm_date=time()+((60*60*24)*3);
 	 $tom_date=date("d.m.",$tomm_date);
-	 $dd=$rows['dr'];
+	 $dd = $rows['dr'] ?? '';
 	 $cut = substr($dd, 0, 6);
 	 if ($tom_date==$cut)
 	 {
 	 echo "<tr><td class='mail3'><b>".$rows['lname']."&nbsp".$rows['fname']."&nbsp".$rows['name']."</b> - (".$rows['otdel'].")";
-	 $ipus=$_SERVER["REMOTE_ADDR"];
+	 $ipus = $_SERVER["REMOTE_ADDR"] ?? '';
 	 echo "</td></tr>";
 	 }
 	 }
@@ -2788,16 +2798,16 @@ echo"<td valign='top' class='ottt1'><table cellpadding='0' cellspacing='0' borde
 	
 } 
  else if ($current_time >= $pro10 && $current_time <= $pro11) {
-    $sql = mysql_query("SELECT * FROM `dr` WHERE id");
-	while ($row = mysql_fetch_row($sql))
+    $sql = Database::query("SELECT * FROM `dr` WHERE id");
+	while ($row = Database::fetchRow($sql))
 	echo"<td valign='top' class='ottt1'><table cellpadding='0' cellspacing='0' border='0' >";
 		echo"<tr><td class='mail1' align='left'>";
-		$sqls = mysql_query("SELECT * FROM `richstone_katalog` WHERE (`radiobutton` between 1 and 5)");
+		$sqls = Database::query("SELECT * FROM `richstone_katalog` WHERE (`radiobutton` between 1 and 5)");
 	 
 	 
-	 for ($i=0; $i<($rows = mysql_fetch_assoc($sqls)); $i++) 
+	 for ($i=0; $i<($rows = Database::fetchAssoc($sqls)); $i++) 
 	 {
-	 $dd=$rows['dr'];
+	 $dd = $rows['dr'] ?? '';
 	 $cut = substr($dd, 0, 6);
 	 $d=date('d.m.');
 	 
@@ -2844,28 +2854,29 @@ echo"<td valign='top' class='ottt1'><table cellpadding='0' cellspacing='0' borde
 	   <tr>
 	 <td class='mail1'><b>Поздравляем!!!</b>
 	 <a class=highslide onclick=\"return hs.htmlExpand(this, { objectType: 'iframe' } )\" href='dp.php?code=$rows[id]'></a>";
-	 $ipus=$_SERVER["REMOTE_ADDR"];
+	 $ipus = $_SERVER["REMOTE_ADDR"] ?? '';
 	 echo "</td></tr></table><br>";
 	 }
 	 //}else {echo "Больше трех";}
 	 }
 	
-	 $sqls = mysql_query("SELECT * FROM `richstone_katalog` WHERE (`radiobutton` between 1 and 5)");
+	 $sqls = Database::query("SELECT * FROM `richstone_katalog` WHERE (`radiobutton` between 1 and 5)");
 	 
-	 if ($tom_date!==$cut)
+	 $tom_date = date('d.m.', strtotime('tomorrow'));
+if ($tom_date !== ($cut ?? ''))
 	 {  
 	 echo"<tr><td class='mail1' align='left'>Завтра день рождения празднуют:</td></tr>";
 	 }
 	 
-		  while ($rows = mysql_fetch_assoc($sqls)) {
+		  while ($rows = Database::fetchAssoc($sqls)) {
 	 $tomm_date=time()+60*60*24;
 	 $tom_date=date("d.m.",$tomm_date);
-	 $dd=$rows['dr'];
+	 $dd = $rows['dr'] ?? '';
 	 $cut = substr($dd, 0, 6);
 	 if ($tom_date==$cut)
 	 {
 	 echo "<tr><td class='mail3'><b>".$rows['lname']."&nbsp".$rows['fname']."&nbsp".$rows['name']."</b> - (".$rows['otdel'].")";
-	 $ipus=$_SERVER["REMOTE_ADDR"];
+	 $ipus = $_SERVER["REMOTE_ADDR"] ?? '';
 	 echo "</td></tr>";
 	 }
 	 }
@@ -2877,28 +2888,28 @@ echo"<td valign='top' class='ottt1'><table cellpadding='0' cellspacing='0' borde
 	 echo"<tr><td class='mail1' align='left'>";
 	
 	 echo"<tr><td class='mail1' align='left'><br>В ближайшие 3 дня, день рождения празднуют:</td></tr>";
-	 $sqls = mysql_query("SELECT * FROM `richstone_katalog` WHERE (`radiobutton` between 1 and 5) ORDER BY dr ASC");
-	 while ($rows = mysql_fetch_assoc($sqls)) {
+	 $sqls = Database::query("SELECT * FROM `richstone_katalog` WHERE (`radiobutton` between 1 and 5) ORDER BY dr ASC");
+	 while ($rows = Database::fetchAssoc($sqls)) {
 	 $tomm_date=time()+((60*60*24)*2);
 	 $tom_date=date("d.m.",$tomm_date);
-	 $dd=$rows['dr'];
+	 $dd = $rows['dr'] ?? '';
 	 $cut = substr($dd, 0, 6);
 	 if ($tom_date==$cut)
 	 {
 	 echo "<tr><td class='mail3'><b>".$rows['lname']."&nbsp".$rows['fname']."&nbsp".$rows['name']."</b> - (".$rows['otdel'].")";
 	 
-	 $ipus=$_SERVER["REMOTE_ADDR"];
+	 $ipus = $_SERVER["REMOTE_ADDR"] ?? '';
 	 
 	 echo "</td></tr>";
 	 }
 	 $tomm_date=time()+((60*60*24)*3);
 	 $tom_date=date("d.m.",$tomm_date);
-	 $dd=$rows['dr'];
+	 $dd = $rows['dr'] ?? '';
 	 $cut = substr($dd, 0, 6);
 	 if ($tom_date==$cut)
 	 {
 	 echo "<tr><td class='mail3'><b>".$rows['lname']."&nbsp".$rows['fname']."&nbsp".$rows['name']."</b> - (".$rows['otdel'].")";
-	 $ipus=$_SERVER["REMOTE_ADDR"];
+	 $ipus = $_SERVER["REMOTE_ADDR"] ?? '';
 	 echo "</td></tr>";
 	 }
 	 }
@@ -2906,16 +2917,16 @@ echo"<td valign='top' class='ottt1'><table cellpadding='0' cellspacing='0' borde
 	 echo "</table>";
 } 
  else if ($current_time >= $pro11 && $current_time <= $pro12) {
-    $sql = mysql_query("SELECT * FROM `dr` WHERE id");
-	while ($row = mysql_fetch_row($sql))
+    $sql = Database::query("SELECT * FROM `dr` WHERE id");
+	while ($row = Database::fetchRow($sql))
 	echo"<td valign='top' class='ottt1'><table cellpadding='0' cellspacing='0' border='0' >";
 		echo"<tr><td class='mail1' align='left'>";
-		$sqls = mysql_query("SELECT * FROM `richstone_katalog` WHERE (`radiobutton` between 1 and 5)");
+		$sqls = Database::query("SELECT * FROM `richstone_katalog` WHERE (`radiobutton` between 1 and 5)");
 	 
 	 
-	 for ($i=0; $i<($rows = mysql_fetch_assoc($sqls)); $i++) 
+	 for ($i=0; $i<($rows = Database::fetchAssoc($sqls)); $i++) 
 	 {
-	 $dd=$rows['dr'];
+	 $dd = $rows['dr'] ?? '';
 	 $cut = substr($dd, 0, 6);
 	 $d=date('d.m.');
 	 
@@ -2962,28 +2973,29 @@ echo"<td valign='top' class='ottt1'><table cellpadding='0' cellspacing='0' borde
 	   <tr>
 	 <td class='mail1'><b>Поздравляем!!!</b>
 	 <a class=highslide onclick=\"return hs.htmlExpand(this, { objectType: 'iframe' } )\" href='dp.php?code=$rows[id]'></a>";
-	 $ipus=$_SERVER["REMOTE_ADDR"];
+	 $ipus = $_SERVER["REMOTE_ADDR"] ?? '';
 	 echo "</td></tr></table><br>";
 	 }
 	 //}else {echo "Больше трех";}
 	 }
 	
-	 $sqls = mysql_query("SELECT * FROM `richstone_katalog` WHERE (`radiobutton` between 1 and 5)");
+	 $sqls = Database::query("SELECT * FROM `richstone_katalog` WHERE (`radiobutton` between 1 and 5)");
 	 
-	 if ($tom_date!==$cut)
+	 $tom_date = date('d.m.', strtotime('tomorrow'));
+if ($tom_date !== ($cut ?? ''))
 	 {  
 	 echo"<tr><td class='mail1' align='left'>Завтра день рождения празднуют:</td></tr>";
 	 }
 	 
-		  while ($rows = mysql_fetch_assoc($sqls)) {
+		  while ($rows = Database::fetchAssoc($sqls)) {
 	 $tomm_date=time()+60*60*24;
 	 $tom_date=date("d.m.",$tomm_date);
-	 $dd=$rows['dr'];
+	 $dd = $rows['dr'] ?? '';
 	 $cut = substr($dd, 0, 6);
 	 if ($tom_date==$cut)
 	 {
 	 echo "<tr><td class='mail3'><b>".$rows['lname']."&nbsp".$rows['fname']."&nbsp".$rows['name']."</b> - (".$rows['otdel'].")";
-	 $ipus=$_SERVER["REMOTE_ADDR"];
+	 $ipus = $_SERVER["REMOTE_ADDR"] ?? '';
 	 echo "</td></tr>";
 	 }
 	 }
@@ -2995,28 +3007,28 @@ echo"<td valign='top' class='ottt1'><table cellpadding='0' cellspacing='0' borde
 	 echo"<tr><td class='mail1' align='left'>";
 	
 	 echo"<tr><td class='mail1' align='left'><br>В ближайшие 3 дня, день рождения празднуют:</td></tr>";
-	 $sqls = mysql_query("SELECT * FROM `richstone_katalog` WHERE (`radiobutton` between 1 and 5) ORDER BY dr ASC");
-	 while ($rows = mysql_fetch_assoc($sqls)) {
+	 $sqls = Database::query("SELECT * FROM `richstone_katalog` WHERE (`radiobutton` between 1 and 5) ORDER BY dr ASC");
+	 while ($rows = Database::fetchAssoc($sqls)) {
 	 $tomm_date=time()+((60*60*24)*2);
 	 $tom_date=date("d.m.",$tomm_date);
-	 $dd=$rows['dr'];
+	 $dd = $rows['dr'] ?? '';
 	 $cut = substr($dd, 0, 6);
 	 if ($tom_date==$cut)
 	 {
 	 echo "<tr><td class='mail3'><b>".$rows['lname']."&nbsp".$rows['fname']."&nbsp".$rows['name']."</b> - (".$rows['otdel'].")";
 	 
-	 $ipus=$_SERVER["REMOTE_ADDR"];
+	 $ipus = $_SERVER["REMOTE_ADDR"] ?? '';
 	 
 	 echo "</td></tr>";
 	 }
 	 $tomm_date=time()+((60*60*24)*3);
 	 $tom_date=date("d.m.",$tomm_date);
-	 $dd=$rows['dr'];
+	 $dd = $rows['dr'] ?? '';
 	 $cut = substr($dd, 0, 6);
 	 if ($tom_date==$cut)
 	 {
 	 echo "<tr><td class='mail3'><b>".$rows['lname']."&nbsp".$rows['fname']."&nbsp".$rows['name']."</b> - (".$rows['otdel'].")";
-	 $ipus=$_SERVER["REMOTE_ADDR"];
+	 $ipus = $_SERVER["REMOTE_ADDR"] ?? '';
 	 echo "</td></tr>";
 	 }
 	 }
@@ -3024,16 +3036,16 @@ echo"<td valign='top' class='ottt1'><table cellpadding='0' cellspacing='0' borde
 	 echo "</table>";
 } 
  else if ($current_time >= $pro12 && $current_time <= $pro13) {
-    $sql = mysql_query("SELECT * FROM `dr` WHERE id");
-	while ($row = mysql_fetch_row($sql))
+    $sql = Database::query("SELECT * FROM `dr` WHERE id");
+	while ($row = Database::fetchRow($sql))
 	echo"<td valign='top' class='ottt1'><table cellpadding='0' cellspacing='0' border='0' >";
 		echo"<tr><td class='mail1' align='left'>";
-		$sqls = mysql_query("SELECT * FROM `richstone_katalog` WHERE (`radiobutton` between 1 and 5)");
+		$sqls = Database::query("SELECT * FROM `richstone_katalog` WHERE (`radiobutton` between 1 and 5)");
 	 
 	 
-	 for ($i=0; $i<($rows = mysql_fetch_assoc($sqls)); $i++) 
+	 for ($i=0; $i<($rows = Database::fetchAssoc($sqls)); $i++) 
 	 {
-	 $dd=$rows['dr'];
+	 $dd = $rows['dr'] ?? '';
 	 $cut = substr($dd, 0, 6);
 	 $d=date('d.m.');
 	 
@@ -3080,28 +3092,29 @@ echo"<td valign='top' class='ottt1'><table cellpadding='0' cellspacing='0' borde
 	   <tr>
 	 <td class='mail1'><b>Поздравляем!!!</b>
 	 <a class=highslide onclick=\"return hs.htmlExpand(this, { objectType: 'iframe' } )\" href='dp.php?code=$rows[id]'></a>";
-	 $ipus=$_SERVER["REMOTE_ADDR"];
+	 $ipus = $_SERVER["REMOTE_ADDR"] ?? '';
 	 echo "</td></tr></table><br>";
 	 }
 	 //}else {echo "Больше трех";}
 	 }
 	
-	 $sqls = mysql_query("SELECT * FROM `richstone_katalog` WHERE (`radiobutton` between 1 and 5)");
+	 $sqls = Database::query("SELECT * FROM `richstone_katalog` WHERE (`radiobutton` between 1 and 5)");
 	 
-	 if ($tom_date!==$cut)
+	 $tom_date = date('d.m.', strtotime('tomorrow'));
+if ($tom_date !== ($cut ?? ''))
 	 {  
 	 echo"<tr><td class='mail1' align='left'>Завтра день рождения празднуют:</td></tr>";
 	 }
 	 
-		  while ($rows = mysql_fetch_assoc($sqls)) {
+		  while ($rows = Database::fetchAssoc($sqls)) {
 	 $tomm_date=time()+60*60*24;
 	 $tom_date=date("d.m.",$tomm_date);
-	 $dd=$rows['dr'];
+	 $dd = $rows['dr'] ?? '';
 	 $cut = substr($dd, 0, 6);
 	 if ($tom_date==$cut)
 	 {
 	 echo "<tr><td class='mail3'><b>".$rows['lname']."&nbsp".$rows['fname']."&nbsp".$rows['name']."</b> - (".$rows['otdel'].")";
-	 $ipus=$_SERVER["REMOTE_ADDR"];
+	 $ipus = $_SERVER["REMOTE_ADDR"] ?? '';
 	 echo "</td></tr>";
 	 }
 	 }
@@ -3113,28 +3126,28 @@ echo"<td valign='top' class='ottt1'><table cellpadding='0' cellspacing='0' borde
 	 echo"<tr><td class='mail1' align='left'>";
 	
 	 echo"<tr><td class='mail1' align='left'><br>В ближайшие 3 дня, день рождения празднуют:</td></tr>";
-	 $sqls = mysql_query("SELECT * FROM `richstone_katalog` WHERE (`radiobutton` between 1 and 5) ORDER BY dr ASC");
-	 while ($rows = mysql_fetch_assoc($sqls)) {
+	 $sqls = Database::query("SELECT * FROM `richstone_katalog` WHERE (`radiobutton` between 1 and 5) ORDER BY dr ASC");
+	 while ($rows = Database::fetchAssoc($sqls)) {
 	 $tomm_date=time()+((60*60*24)*2);
 	 $tom_date=date("d.m.",$tomm_date);
-	 $dd=$rows['dr'];
+	 $dd = $rows['dr'] ?? '';
 	 $cut = substr($dd, 0, 6);
 	 if ($tom_date==$cut)
 	 {
 	 echo "<tr><td class='mail3'><b>".$rows['lname']."&nbsp".$rows['fname']."&nbsp".$rows['name']."</b> - (".$rows['otdel'].")";
 	 
-	 $ipus=$_SERVER["REMOTE_ADDR"];
+	 $ipus = $_SERVER["REMOTE_ADDR"] ?? '';
 	 
 	 echo "</td></tr>";
 	 }
 	 $tomm_date=time()+((60*60*24)*3);
 	 $tom_date=date("d.m.",$tomm_date);
-	 $dd=$rows['dr'];
+	 $dd = $rows['dr'] ?? '';
 	 $cut = substr($dd, 0, 6);
 	 if ($tom_date==$cut)
 	 {
 	 echo "<tr><td class='mail3'><b>".$rows['lname']."&nbsp".$rows['fname']."&nbsp".$rows['name']."</b> - (".$rows['otdel'].")";
-	 $ipus=$_SERVER["REMOTE_ADDR"];
+	 $ipus = $_SERVER["REMOTE_ADDR"] ?? '';
 	 echo "</td></tr>";
 	 }
 	 }
@@ -3142,16 +3155,16 @@ echo"<td valign='top' class='ottt1'><table cellpadding='0' cellspacing='0' borde
 	 echo "</table>";
 } 
  else if ($current_time >= $pro13 && $current_time <= $pro14) {
-    $sql = mysql_query("SELECT * FROM `dr` WHERE id");
-	while ($row = mysql_fetch_row($sql))
+    $sql = Database::query("SELECT * FROM `dr` WHERE id");
+	while ($row = Database::fetchRow($sql))
 	echo"<td valign='top' class='ottt1'><table cellpadding='0' cellspacing='0' border='0' >";
 		echo"<tr><td class='mail1' align='left'>";
-		$sqls = mysql_query("SELECT * FROM `richstone_katalog` WHERE (`radiobutton` between 1 and 5)");
+		$sqls = Database::query("SELECT * FROM `richstone_katalog` WHERE (`radiobutton` between 1 and 5)");
 	 
 	 
-	 for ($i=0; $i<($rows = mysql_fetch_assoc($sqls)); $i++) 
+	 for ($i=0; $i<($rows = Database::fetchAssoc($sqls)); $i++) 
 	 {
-	 $dd=$rows['dr'];
+	 $dd = $rows['dr'] ?? '';
 	 $cut = substr($dd, 0, 6);
 	 $d=date('d.m.');
 	 
@@ -3198,28 +3211,29 @@ echo"<td valign='top' class='ottt1'><table cellpadding='0' cellspacing='0' borde
 	   <tr>
 	 <td class='mail1'><b>Поздравляем!!!</b>
 	 <a class=highslide onclick=\"return hs.htmlExpand(this, { objectType: 'iframe' } )\" href='dp.php?code=$rows[id]'></a>";
-	 $ipus=$_SERVER["REMOTE_ADDR"];
+	 $ipus = $_SERVER["REMOTE_ADDR"] ?? '';
 	 echo "</td></tr></table><br>";
 	 }
 	 //}else {echo "Больше трех";}
 	 }
 	
-	 $sqls = mysql_query("SELECT * FROM `richstone_katalog` WHERE (`radiobutton` between 1 and 5)");
+	 $sqls = Database::query("SELECT * FROM `richstone_katalog` WHERE (`radiobutton` between 1 and 5)");
 	 
-	 if ($tom_date!==$cut)
+	 $tom_date = date('d.m.', strtotime('tomorrow'));
+if ($tom_date !== ($cut ?? ''))
 	 {  
 	 echo"<tr><td class='mail1' align='left'>Завтра день рождения празднуют:</td></tr>";
 	 }
 	 
-		  while ($rows = mysql_fetch_assoc($sqls)) {
+		  while ($rows = Database::fetchAssoc($sqls)) {
 	 $tomm_date=time()+60*60*24;
 	 $tom_date=date("d.m.",$tomm_date);
-	 $dd=$rows['dr'];
+	 $dd = $rows['dr'] ?? '';
 	 $cut = substr($dd, 0, 6);
 	 if ($tom_date==$cut)
 	 {
 	 echo "<tr><td class='mail3'><b>".$rows['lname']."&nbsp".$rows['fname']."&nbsp".$rows['name']."</b> - (".$rows['otdel'].")";
-	 $ipus=$_SERVER["REMOTE_ADDR"];
+	 $ipus = $_SERVER["REMOTE_ADDR"] ?? '';
 	 echo "</td></tr>";
 	 }
 	 }
@@ -3231,28 +3245,28 @@ echo"<td valign='top' class='ottt1'><table cellpadding='0' cellspacing='0' borde
 	 echo"<tr><td class='mail1' align='left'>";
 	
 	 echo"<tr><td class='mail1' align='left'><br>В ближайшие 3 дня, день рождения празднуют:</td></tr>";
-	 $sqls = mysql_query("SELECT * FROM `richstone_katalog` WHERE (`radiobutton` between 1 and 5) ORDER BY dr ASC");
-	 while ($rows = mysql_fetch_assoc($sqls)) {
+	 $sqls = Database::query("SELECT * FROM `richstone_katalog` WHERE (`radiobutton` between 1 and 5) ORDER BY dr ASC");
+	 while ($rows = Database::fetchAssoc($sqls)) {
 	 $tomm_date=time()+((60*60*24)*2);
 	 $tom_date=date("d.m.",$tomm_date);
-	 $dd=$rows['dr'];
+	 $dd = $rows['dr'] ?? '';
 	 $cut = substr($dd, 0, 6);
 	 if ($tom_date==$cut)
 	 {
 	 echo "<tr><td class='mail3'><b>".$rows['lname']."&nbsp".$rows['fname']."&nbsp".$rows['name']."</b> - (".$rows['otdel'].")";
 	 
-	 $ipus=$_SERVER["REMOTE_ADDR"];
+	 $ipus = $_SERVER["REMOTE_ADDR"] ?? '';
 	 
 	 echo "</td></tr>";
 	 }
 	 $tomm_date=time()+((60*60*24)*3);
 	 $tom_date=date("d.m.",$tomm_date);
-	 $dd=$rows['dr'];
+	 $dd = $rows['dr'] ?? '';
 	 $cut = substr($dd, 0, 6);
 	 if ($tom_date==$cut)
 	 {
 	 echo "<tr><td class='mail3'><b>".$rows['lname']."&nbsp".$rows['fname']."&nbsp".$rows['name']."</b> - (".$rows['otdel'].")";
-	 $ipus=$_SERVER["REMOTE_ADDR"];
+	 $ipus = $_SERVER["REMOTE_ADDR"] ?? '';
 	 echo "</td></tr>";
 	 }
 	 }
@@ -3260,16 +3274,16 @@ echo"<td valign='top' class='ottt1'><table cellpadding='0' cellspacing='0' borde
 	 echo "</table>";
 } 
  else if ($current_time >= $pro14 && $current_time <= $pro15) {
-    $sql = mysql_query("SELECT * FROM `dr` WHERE id");
-	while ($row = mysql_fetch_row($sql))
+    $sql = Database::query("SELECT * FROM `dr` WHERE id");
+	while ($row = Database::fetchRow($sql))
 		echo"<td valign='top' class='ottt1'><table cellpadding='0' cellspacing='0' border='0' >";
 		echo"<tr><td class='mail1' align='left'>";
-		$sqls = mysql_query("SELECT * FROM `richstone_katalog` WHERE (`radiobutton` between 1 and 5)");
+		$sqls = Database::query("SELECT * FROM `richstone_katalog` WHERE (`radiobutton` between 1 and 5)");
 	 
 	 
-	 for ($i=0; $i<($rows = mysql_fetch_assoc($sqls)); $i++) 
+	 for ($i=0; $i<($rows = Database::fetchAssoc($sqls)); $i++) 
 	 {
-	 $dd=$rows['dr'];
+	 $dd = $rows['dr'] ?? '';
 	 $cut = substr($dd, 0, 6);
 	 $d=date('d.m.');
 	 
@@ -3316,7 +3330,7 @@ echo"<td valign='top' class='ottt1'><table cellpadding='0' cellspacing='0' borde
 	   <tr>
 	 <td class='mail1'><b>Поздравляем!!!</b>
 	 <a class=highslide onclick=\"return hs.htmlExpand(this, { objectType: 'iframe' } )\" href='dp.php?code=$rows[id]'></a>";
-	 $ipus=$_SERVER["REMOTE_ADDR"];
+	 $ipus = $_SERVER["REMOTE_ADDR"] ?? '';
 	 echo "</td></tr></table><br>";
 	 }
 	 //}else {echo "Больше трех";}
@@ -3328,48 +3342,49 @@ echo"<td valign='top' class='ottt1'><table cellpadding='0' cellspacing='0' borde
 	 echo"<td valign='top' class='ottt1'><table cellpadding='0' cellspacing='0' border='0' >";
 	 echo"<tr><td class='mail1' align='left'>";
 	
-	 $sqls = mysql_query("SELECT * FROM `richstone_katalog` WHERE (`radiobutton` between 1 and 5)");
+	 $sqls = Database::query("SELECT * FROM `richstone_katalog` WHERE (`radiobutton` between 1 and 5)");
 	 
-	 if ($tom_date!==$cut)
+	 $tom_date = date('d.m.', strtotime('tomorrow'));
+if ($tom_date !== ($cut ?? ''))
 	 {  
 	 echo"<tr><td class='mail1' align='left'>Завтра день рождения празднуют:</td></tr>";
 	 }
 	 
-		  while ($rows = mysql_fetch_assoc($sqls)) {
+		  while ($rows = Database::fetchAssoc($sqls)) {
 	 $tomm_date=time()+60*60*24;
 	 $tom_date=date("d.m.",$tomm_date);
-	 $dd=$rows['dr'];
+	 $dd = $rows['dr'] ?? '';
 	 $cut = substr($dd, 0, 6);
 	 if ($tom_date==$cut)
 	 {
 	 echo "<tr><td class='mail3'><b>".$rows['lname']."&nbsp".$rows['fname']."&nbsp".$rows['name']."</b> - (".$rows['otdel'].")";
-	 $ipus=$_SERVER["REMOTE_ADDR"];
+	 $ipus = $_SERVER["REMOTE_ADDR"] ?? '';
 	 echo "</td></tr>";
 	 }
 	 }
 	 echo"<tr><td class='mail1' align='left'><br>В ближайшие 3 дня, день рождения празднуют:</td></tr>";
-	 $sqls = mysql_query("SELECT * FROM `richstone_katalog` WHERE (`radiobutton` between 1 and 5) ORDER BY dr ASC");
-	 while ($rows = mysql_fetch_assoc($sqls)) {
+	 $sqls = Database::query("SELECT * FROM `richstone_katalog` WHERE (`radiobutton` between 1 and 5) ORDER BY dr ASC");
+	 while ($rows = Database::fetchAssoc($sqls)) {
 	 $tomm_date=time()+((60*60*24)*2);
 	 $tom_date=date("d.m.",$tomm_date);
-	 $dd=$rows['dr'];
+	 $dd = $rows['dr'] ?? '';
 	 $cut = substr($dd, 0, 6);
 	 if ($tom_date==$cut)
 	 {
 	 echo "<tr><td class='mail3'><b>".$rows['lname']."&nbsp".$rows['fname']."&nbsp".$rows['name']."</b> - (".$rows['otdel'].")";
 	 
-	 $ipus=$_SERVER["REMOTE_ADDR"];
+	 $ipus = $_SERVER["REMOTE_ADDR"] ?? '';
 	 
 	 echo "</td></tr>";
 	 }
 	 $tomm_date=time()+((60*60*24)*3);
 	 $tom_date=date("d.m.",$tomm_date);
-	 $dd=$rows['dr'];
+	 $dd = $rows['dr'] ?? '';
 	 $cut = substr($dd, 0, 6);
 	 if ($tom_date==$cut)
 	 {
 	 echo "<tr><td class='mail3'><b>".$rows['lname']."&nbsp".$rows['fname']."&nbsp".$rows['name']."</b> - (".$rows['otdel'].")";
-	 $ipus=$_SERVER["REMOTE_ADDR"];
+	 $ipus = $_SERVER["REMOTE_ADDR"] ?? '';
 	 echo "</td></tr>";
 	 }
 	 }
@@ -3378,16 +3393,16 @@ echo"<td valign='top' class='ottt1'><table cellpadding='0' cellspacing='0' borde
 	
 } 
  else if ($current_time >= $pro15 && $current_time <= $pro16) {
-    $sql = mysql_query("SELECT * FROM `dr` WHERE id");
-	while ($row = mysql_fetch_row($sql))
+    $sql = Database::query("SELECT * FROM `dr` WHERE id");
+	while ($row = Database::fetchRow($sql))
 		echo"<td valign='top' class='ottt1'><table cellpadding='0' cellspacing='0' border='0' >";
 		echo"<tr><td class='mail1' align='left'>";
-		$sqls = mysql_query("SELECT * FROM `richstone_katalog` WHERE (`radiobutton` between 1 and 5)");
+		$sqls = Database::query("SELECT * FROM `richstone_katalog` WHERE (`radiobutton` between 1 and 5)");
 	 
 	 
-	 for ($i=0; $i<($rows = mysql_fetch_assoc($sqls)); $i++) 
+	 for ($i=0; $i<($rows = Database::fetchAssoc($sqls)); $i++) 
 	 {
-	 $dd=$rows['dr'];
+	 $dd = $rows['dr'] ?? '';
 	 $cut = substr($dd, 0, 6);
 	 $d=date('d.m.');
 	 
@@ -3434,7 +3449,7 @@ echo"<td valign='top' class='ottt1'><table cellpadding='0' cellspacing='0' borde
 	   <tr>
 	 <td class='mail1'><b>Поздравляем!!!</b>
 	 <a class=highslide onclick=\"return hs.htmlExpand(this, { objectType: 'iframe' } )\" href='dp.php?code=$rows[id]'></a>";
-	 $ipus=$_SERVER["REMOTE_ADDR"];
+	 $ipus = $_SERVER["REMOTE_ADDR"] ?? '';
 	 echo "</td></tr></table><br>";
 	 }
 	 //}else {echo "Больше трех";}
@@ -3446,48 +3461,49 @@ echo"<td valign='top' class='ottt1'><table cellpadding='0' cellspacing='0' borde
 	 echo"<td valign='top' class='ottt1'><table cellpadding='0' cellspacing='0' border='0' >";
 	 echo"<tr><td class='mail1' align='left'>";
 	
-	 $sqls = mysql_query("SELECT * FROM `richstone_katalog` WHERE (`radiobutton` between 1 and 5)");
+	 $sqls = Database::query("SELECT * FROM `richstone_katalog` WHERE (`radiobutton` between 1 and 5)");
 	 
-	 if ($tom_date!==$cut)
+	 $tom_date = date('d.m.', strtotime('tomorrow'));
+if ($tom_date !== ($cut ?? ''))
 	 {  
 	 echo"<tr><td class='mail1' align='left'>Завтра день рождения празднуют:</td></tr>";
 	 }
 	 
-		  while ($rows = mysql_fetch_assoc($sqls)) {
+		  while ($rows = Database::fetchAssoc($sqls)) {
 	 $tomm_date=time()+60*60*24;
 	 $tom_date=date("d.m.",$tomm_date);
-	 $dd=$rows['dr'];
+	 $dd = $rows['dr'] ?? '';
 	 $cut = substr($dd, 0, 6);
 	 if ($tom_date==$cut)
 	 {
 	 echo "<tr><td class='mail3'><b>".$rows['lname']."&nbsp".$rows['fname']."&nbsp".$rows['name']."</b> - (".$rows['otdel'].")";
-	 $ipus=$_SERVER["REMOTE_ADDR"];
+	 $ipus = $_SERVER["REMOTE_ADDR"] ?? '';
 	 echo "</td></tr>";
 	 }
 	 }
 	 echo"<tr><td class='mail1' align='left'><br>В ближайшие 3 дня, день рождения празднуют:</td></tr>";
-	 $sqls = mysql_query("SELECT * FROM `richstone_katalog` WHERE (`radiobutton` between 1 and 5) ORDER BY dr ASC");
-	 while ($rows = mysql_fetch_assoc($sqls)) {
+	 $sqls = Database::query("SELECT * FROM `richstone_katalog` WHERE (`radiobutton` between 1 and 5) ORDER BY dr ASC");
+	 while ($rows = Database::fetchAssoc($sqls)) {
 	 $tomm_date=time()+((60*60*24)*2);
 	 $tom_date=date("d.m.",$tomm_date);
-	 $dd=$rows['dr'];
+	 $dd = $rows['dr'] ?? '';
 	 $cut = substr($dd, 0, 6);
 	 if ($tom_date==$cut)
 	 {
 	 echo "<tr><td class='mail3'><b>".$rows['lname']."&nbsp".$rows['fname']."&nbsp".$rows['name']."</b> - (".$rows['otdel'].")";
 	 
-	 $ipus=$_SERVER["REMOTE_ADDR"];
+	 $ipus = $_SERVER["REMOTE_ADDR"] ?? '';
 	 
 	 echo "</td></tr>";
 	 }
 	 $tomm_date=time()+((60*60*24)*3);
 	 $tom_date=date("d.m.",$tomm_date);
-	 $dd=$rows['dr'];
+	 $dd = $rows['dr'] ?? '';
 	 $cut = substr($dd, 0, 6);
 	 if ($tom_date==$cut)
 	 {
 	 echo "<tr><td class='mail3'><b>".$rows['lname']."&nbsp".$rows['fname']."&nbsp".$rows['name']."</b> - (".$rows['otdel'].")";
-	 $ipus=$_SERVER["REMOTE_ADDR"];
+	 $ipus = $_SERVER["REMOTE_ADDR"] ?? '';
 	 echo "</td></tr>";
 	 }
 	 }
@@ -3496,16 +3512,16 @@ echo"<td valign='top' class='ottt1'><table cellpadding='0' cellspacing='0' borde
 	
 } 
  else if ($current_time >= $pro16 && $current_time <= $pro17) {
-    $sql = mysql_query("SELECT * FROM `dr` WHERE id");
-	while ($row = mysql_fetch_row($sql))
+    $sql = Database::query("SELECT * FROM `dr` WHERE id");
+	while ($row = Database::fetchRow($sql))
 	echo"<td valign='top' class='ottt1'><table cellpadding='0' cellspacing='0' border='0' >";
 		echo"<tr><td class='mail1' align='left'>";
-		$sqls = mysql_query("SELECT * FROM `richstone_katalog` WHERE (`radiobutton` between 1 and 5)");
+		$sqls = Database::query("SELECT * FROM `richstone_katalog` WHERE (`radiobutton` between 1 and 5)");
 	 
 	 
-	 for ($i=0; $i<($rows = mysql_fetch_assoc($sqls)); $i++) 
+	 for ($i=0; $i<($rows = Database::fetchAssoc($sqls)); $i++) 
 	 {
-	 $dd=$rows['dr'];
+	 $dd = $rows['dr'] ?? '';
 	 $cut = substr($dd, 0, 6);
 	 $d=date('d.m.');
 	 
@@ -3552,28 +3568,29 @@ echo"<td valign='top' class='ottt1'><table cellpadding='0' cellspacing='0' borde
 	   <tr>
 	 <td class='mail1'><b>Поздравляем!!!</b>
 	 <a class=highslide onclick=\"return hs.htmlExpand(this, { objectType: 'iframe' } )\" href='dp.php?code=$rows[id]'></a>";
-	 $ipus=$_SERVER["REMOTE_ADDR"];
+	 $ipus = $_SERVER["REMOTE_ADDR"] ?? '';
 	 echo "</td></tr></table><br>";
 	 }
 	 //}else {echo "Больше трех";}
 	 }
 	
-	 $sqls = mysql_query("SELECT * FROM `richstone_katalog` WHERE (`radiobutton` between 1 and 5)");
+	 $sqls = Database::query("SELECT * FROM `richstone_katalog` WHERE (`radiobutton` between 1 and 5)");
 	 
-	 if ($tom_date!==$cut)
+	 $tom_date = date('d.m.', strtotime('tomorrow'));
+if ($tom_date !== ($cut ?? ''))
 	 {  
 	 echo"<tr><td class='mail1' align='left'>Завтра день рождения празднуют:</td></tr>";
 	 }
 	 
-		  while ($rows = mysql_fetch_assoc($sqls)) {
+		  while ($rows = Database::fetchAssoc($sqls)) {
 	 $tomm_date=time()+60*60*24;
 	 $tom_date=date("d.m.",$tomm_date);
-	 $dd=$rows['dr'];
+	 $dd = $rows['dr'] ?? '';
 	 $cut = substr($dd, 0, 6);
 	 if ($tom_date==$cut)
 	 {
 	 echo "<tr><td class='mail3'><b>".$rows['lname']."&nbsp".$rows['fname']."&nbsp".$rows['name']."</b> - (".$rows['otdel'].")";
-	 $ipus=$_SERVER["REMOTE_ADDR"];
+	 $ipus = $_SERVER["REMOTE_ADDR"] ?? '';
 	 echo "</td></tr>";
 	 }
 	 }
@@ -3585,28 +3602,28 @@ echo"<td valign='top' class='ottt1'><table cellpadding='0' cellspacing='0' borde
 	 echo"<tr><td class='mail1' align='left'>";
 	
 	 echo"<tr><td class='mail1' align='left'><br>В ближайшие 3 дня, день рождения празднуют:</td></tr>";
-	 $sqls = mysql_query("SELECT * FROM `richstone_katalog` WHERE (`radiobutton` between 1 and 5) ORDER BY dr ASC");
-	 while ($rows = mysql_fetch_assoc($sqls)) {
+	 $sqls = Database::query("SELECT * FROM `richstone_katalog` WHERE (`radiobutton` between 1 and 5) ORDER BY dr ASC");
+	 while ($rows = Database::fetchAssoc($sqls)) {
 	 $tomm_date=time()+((60*60*24)*2);
 	 $tom_date=date("d.m.",$tomm_date);
-	 $dd=$rows['dr'];
+	 $dd = $rows['dr'] ?? '';
 	 $cut = substr($dd, 0, 6);
 	 if ($tom_date==$cut)
 	 {
 	 echo "<tr><td class='mail3'><b>".$rows['lname']."&nbsp".$rows['fname']."&nbsp".$rows['name']."</b> - (".$rows['otdel'].")";
 	 
-	 $ipus=$_SERVER["REMOTE_ADDR"];
+	 $ipus = $_SERVER["REMOTE_ADDR"] ?? '';
 	 
 	 echo "</td></tr>";
 	 }
 	 $tomm_date=time()+((60*60*24)*3);
 	 $tom_date=date("d.m.",$tomm_date);
-	 $dd=$rows['dr'];
+	 $dd = $rows['dr'] ?? '';
 	 $cut = substr($dd, 0, 6);
 	 if ($tom_date==$cut)
 	 {
 	 echo "<tr><td class='mail3'><b>".$rows['lname']."&nbsp".$rows['fname']."&nbsp".$rows['name']."</b> - (".$rows['otdel'].")";
-	 $ipus=$_SERVER["REMOTE_ADDR"];
+	 $ipus = $_SERVER["REMOTE_ADDR"] ?? '';
 	 echo "</td></tr>";
 	 }
 	 }
@@ -3614,17 +3631,17 @@ echo"<td valign='top' class='ottt1'><table cellpadding='0' cellspacing='0' borde
 	 echo "</table>";
 } 
  else if ($current_time >= $pro17 && $current_time <= $pro18) {
-    $sql = mysql_query("SELECT * FROM `dr` WHERE id");
-	while ($row = mysql_fetch_row($sql))
+    $sql = Database::query("SELECT * FROM `dr` WHERE id");
+	while ($row = Database::fetchRow($sql))
 echo"<td valign='top' class='ottt1'><table cellpadding='0' cellspacing='0' border='0' >";
 	
 		echo"<tr><td class='mail1' align='left'>";
-		$sqls = mysql_query("SELECT * FROM `richstone_katalog` WHERE (`radiobutton` between 1 and 5)");
+		$sqls = Database::query("SELECT * FROM `richstone_katalog` WHERE (`radiobutton` between 1 and 5)");
 	 
 	 
-	 for ($i=0; $i<($rows = mysql_fetch_assoc($sqls)); $i++) 
+	 for ($i=0; $i<($rows = Database::fetchAssoc($sqls)); $i++) 
 	 {
-	 $dd=$rows['dr'];
+	 $dd = $rows['dr'] ?? '';
 	 $cut = substr($dd, 0, 6);
 	 $d=date('d.m.');
 	 
@@ -3671,7 +3688,7 @@ echo"<td valign='top' class='ottt1'><table cellpadding='0' cellspacing='0' borde
 	   <tr>
 	 <td class='mail1'><b>Поздравляем!!!</b>
 	 <a class=highslide onclick=\"return hs.htmlExpand(this, { objectType: 'iframe' } )\" href='dp.php?code=$rows[id]'></a>";
-	 $ipus=$_SERVER["REMOTE_ADDR"];
+	 $ipus = $_SERVER["REMOTE_ADDR"] ?? '';
 	 echo "</td></tr></table><br>";
 	 }
 	 //}else {echo "Больше трех";}
@@ -3680,61 +3697,62 @@ echo"<td valign='top' class='ottt1'><table cellpadding='0' cellspacing='0' borde
 	 echo "</td></tr>";
 	 
 	 //echo"<tr><td class='mail1' align='left'>Завтра день рождения празднуют:</td></tr>";
-	 $sqls = mysql_query("SELECT * FROM `richstone_katalog` WHERE (`radiobutton` between 1 and 5)");
+	 $sqls = Database::query("SELECT * FROM `richstone_katalog` WHERE (`radiobutton` between 1 and 5)");
 	 
-	 if ($tom_date!==$cut)
+	 $tom_date = date('d.m.', strtotime('tomorrow'));
+if ($tom_date !== ($cut ?? ''))
 	 {  
 	 echo"<tr><strong><td class='mail1' align='left'>Завтра день рождения празднуют:</td></strong></tr>";
 	 }
-	 while ($rows = mysql_fetch_assoc($sqls)) {
+	 while ($rows = Database::fetchAssoc($sqls)) {
 	 $tomm_date=time()+60*60*24;
 	 $tom_date=date("d.m.",$tomm_date);
-	 $dd=$rows['dr'];
+	 $dd = $rows['dr'] ?? '';
 	 $cut = substr($dd, 0, 6);
 	 if ($tom_date==$cut)
 	 {
 	 echo "<tr><td class='mail3'><b>".$rows['lname']."&nbsp".$rows['fname']."&nbsp".$rows['name']."</b> - (".$rows['otdel'].")";
-	 $ipus=$_SERVER["REMOTE_ADDR"];
+	 $ipus = $_SERVER["REMOTE_ADDR"] ?? '';
 	 echo "</td></tr>";
 	 }}
 	 echo"<tr><td class='mail1' align='left'>";
 	 echo"<tr><td class='mail1' align='left'><br>В ближайшие 3 дня, день рождения празднуют:</td></tr>";
-	 $sqls = mysql_query("SELECT * FROM `richstone_katalog` WHERE (`radiobutton` between 1 and 5) ORDER BY dr ASC");
-		while ($rows = mysql_fetch_assoc($sqls))
+	 $sqls = Database::query("SELECT * FROM `richstone_katalog` WHERE (`radiobutton` between 1 and 5) ORDER BY dr ASC");
+		while ($rows = Database::fetchAssoc($sqls))
 	 {
 	 $tomm_date=time()+((60*60*24)*2);
 	 $tom_date=date("d.m.",$tomm_date);
-	 $dd=$rows['dr'];
+	 $dd = $rows['dr'] ?? '';
 	 $cut = substr($dd, 0, 6);
 	 if ($tom_date==$cut)
 	 {
 	 echo "<tr><td class='mail3'><b>".$rows['lname']."&nbsp".$rows['fname']."&nbsp".$rows['name']."</b> - (".$rows['otdel'].")";
-	 $ipus=$_SERVER["REMOTE_ADDR"];
+	 $ipus = $_SERVER["REMOTE_ADDR"] ?? '';
 	 echo "</td></tr>";
 	 }
 	 $tomm_date=time()+((60*60*24)*3);
 	 $tom_date=date("d.m.",$tomm_date);
-	 $dd=$rows['dr'];
+	 $dd = $rows['dr'] ?? '';
 	 $cut = substr($dd, 0, 6);
 	 if ($tom_date==$cut)
 	 {
 	 echo "<tr><td class='mail3'><b>".$rows['lname']."&nbsp".$rows['fname']."&nbsp".$rows['name']."</b> - (".$rows['otdel'].")";
-	 $ipus=$_SERVER["REMOTE_ADDR"];
+	 $ipus = $_SERVER["REMOTE_ADDR"] ?? '';
 	 echo "</td></tr>";
 	 }}
 	 echo "</table>";
 } 
  else if ($current_time >= $pro18 && $current_time <= $pro19) {
-    $sql = mysql_query("SELECT * FROM `dr` WHERE id");
-	while ($row = mysql_fetch_row($sql))
+    $sql = Database::query("SELECT * FROM `dr` WHERE id");
+	while ($row = Database::fetchRow($sql))
 		echo"<td valign='top' class='ottt1'><table cellpadding='0' cellspacing='0' border='0' >";
 		echo"<tr><td class='mail1' align='left'>";
-		$sqls = mysql_query("SELECT * FROM `richstone_katalog` WHERE (`radiobutton` between 1 and 5)");
+		$sqls = Database::query("SELECT * FROM `richstone_katalog` WHERE (`radiobutton` between 1 and 5)");
 	 
 	 
-	 for ($i=0; $i<($rows = mysql_fetch_assoc($sqls)); $i++) 
+	 for ($i=0; $i<($rows = Database::fetchAssoc($sqls)); $i++) 
 	 {
-	 $dd=$rows['dr'];
+	 $dd = $rows['dr'] ?? '';
 	 $cut = substr($dd, 0, 6);
 	 $d=date('d.m.');
 	 
@@ -3781,7 +3799,7 @@ echo"<td valign='top' class='ottt1'><table cellpadding='0' cellspacing='0' borde
 	   <tr>
 	 <td class='mail1'><b>Поздравляем!!!</b>
 	 <a class=highslide onclick=\"return hs.htmlExpand(this, { objectType: 'iframe' } )\" href='dp.php?code=$rows[id]'></a>";
-	 $ipus=$_SERVER["REMOTE_ADDR"];
+	 $ipus = $_SERVER["REMOTE_ADDR"] ?? '';
 	 echo "</td></tr></table><br>";
 	 }
 	 //}else {echo "Больше трех";}
@@ -3793,48 +3811,49 @@ echo"<td valign='top' class='ottt1'><table cellpadding='0' cellspacing='0' borde
 	 echo"<td valign='top' class='ottt1'><table cellpadding='0' cellspacing='0' border='0' >";
 	 echo"<tr><td class='mail1' align='left'>";
 	
-	 $sqls = mysql_query("SELECT * FROM `richstone_katalog` WHERE (`radiobutton` between 1 and 5)");
+	 $sqls = Database::query("SELECT * FROM `richstone_katalog` WHERE (`radiobutton` between 1 and 5)");
 	 
-	 if ($tom_date!==$cut)
+	 $tom_date = date('d.m.', strtotime('tomorrow'));
+if ($tom_date !== ($cut ?? ''))
 	 {  
 	 echo"<tr><td class='mail1' align='left'>Завтра день рождения празднуют:</td></tr>";
 	 }
 	 
-		  while ($rows = mysql_fetch_assoc($sqls)) {
+		  while ($rows = Database::fetchAssoc($sqls)) {
 	 $tomm_date=time()+60*60*24;
 	 $tom_date=date("d.m.",$tomm_date);
-	 $dd=$rows['dr'];
+	 $dd = $rows['dr'] ?? '';
 	 $cut = substr($dd, 0, 6);
 	 if ($tom_date==$cut)
 	 {
 	 echo "<tr><td class='mail3'><b>".$rows['lname']."&nbsp".$rows['fname']."&nbsp".$rows['name']."</b> - (".$rows['otdel'].")";
-	 $ipus=$_SERVER["REMOTE_ADDR"];
+	 $ipus = $_SERVER["REMOTE_ADDR"] ?? '';
 	 echo "</td></tr>";
 	 }
 	 }
 	 echo"<tr><td class='mail1' align='left'><br>В ближайшие 3 дня, день рождения празднуют:</td></tr>";
-	 $sqls = mysql_query("SELECT * FROM `richstone_katalog` WHERE (`radiobutton` between 1 and 5) ORDER BY dr ASC");
-	 while ($rows = mysql_fetch_assoc($sqls)) {
+	 $sqls = Database::query("SELECT * FROM `richstone_katalog` WHERE (`radiobutton` between 1 and 5) ORDER BY dr ASC");
+	 while ($rows = Database::fetchAssoc($sqls)) {
 	 $tomm_date=time()+((60*60*24)*2);
 	 $tom_date=date("d.m.",$tomm_date);
-	 $dd=$rows['dr'];
+	 $dd = $rows['dr'] ?? '';
 	 $cut = substr($dd, 0, 6);
 	 if ($tom_date==$cut)
 	 {
 	 echo "<tr><td class='mail3'><b>".$rows['lname']."&nbsp".$rows['fname']."&nbsp".$rows['name']."</b> - (".$rows['otdel'].")";
 	 
-	 $ipus=$_SERVER["REMOTE_ADDR"];
+	 $ipus = $_SERVER["REMOTE_ADDR"] ?? '';
 	 
 	 echo "</td></tr>";
 	 }
 	 $tomm_date=time()+((60*60*24)*3);
 	 $tom_date=date("d.m.",$tomm_date);
-	 $dd=$rows['dr'];
+	 $dd = $rows['dr'] ?? '';
 	 $cut = substr($dd, 0, 6);
 	 if ($tom_date==$cut)
 	 {
 	 echo "<tr><td class='mail3'><b>".$rows['lname']."&nbsp".$rows['fname']."&nbsp".$rows['name']."</b> - (".$rows['otdel'].")";
-	 $ipus=$_SERVER["REMOTE_ADDR"];
+	 $ipus = $_SERVER["REMOTE_ADDR"] ?? '';
 	 echo "</td></tr>";
 	 }
 	 }
@@ -3843,17 +3862,17 @@ echo"<td valign='top' class='ottt1'><table cellpadding='0' cellspacing='0' borde
 	
 } 
  else if ($current_time >= $pro19 && $current_time <= $pro20) {
-    $sql = mysql_query("SELECT * FROM `dr` WHERE id");
-	while ($row = mysql_fetch_row($sql))
+    $sql = Database::query("SELECT * FROM `dr` WHERE id");
+	while ($row = Database::fetchRow($sql))
 echo"<td valign='top' class='ottt1'><table cellpadding='0' cellspacing='0' border='0' >";
 	
 		echo"<tr><td class='mail1' align='left'>";
-		$sqls = mysql_query("SELECT * FROM `richstone_katalog` WHERE (`radiobutton` between 1 and 5)");
+		$sqls = Database::query("SELECT * FROM `richstone_katalog` WHERE (`radiobutton` between 1 and 5)");
 	 
 	 
-	 for ($i=0; $i<($rows = mysql_fetch_assoc($sqls)); $i++) 
+	 for ($i=0; $i<($rows = Database::fetchAssoc($sqls)); $i++) 
 	 {
-	 $dd=$rows['dr'];
+	 $dd = $rows['dr'] ?? '';
 	 $cut = substr($dd, 0, 6);
 	 $d=date('d.m.');
 	 
@@ -3900,7 +3919,7 @@ echo"<td valign='top' class='ottt1'><table cellpadding='0' cellspacing='0' borde
 	   <tr>
 	 <td class='mail1'><b>Поздравляем!!!</b>
 	 <a class=highslide onclick=\"return hs.htmlExpand(this, { objectType: 'iframe' } )\" href='dp.php?code=$rows[id]'></a>";
-	 $ipus=$_SERVER["REMOTE_ADDR"];
+	 $ipus = $_SERVER["REMOTE_ADDR"] ?? '';
 	 echo "</td></tr></table><br>";
 	 }
 	 //}else {echo "Больше трех";}
@@ -3909,62 +3928,63 @@ echo"<td valign='top' class='ottt1'><table cellpadding='0' cellspacing='0' borde
 	 echo "</td></tr>";
 	 
 	 //echo"<tr><td class='mail1' align='left'>Завтра день рождения празднуют:</td></tr>";
-	 $sqls = mysql_query("SELECT * FROM `richstone_katalog` WHERE (`radiobutton` between 1 and 5)");
+	 $sqls = Database::query("SELECT * FROM `richstone_katalog` WHERE (`radiobutton` between 1 and 5)");
 	 
-	 if ($tom_date!==$cut)
+	 $tom_date = date('d.m.', strtotime('tomorrow'));
+if ($tom_date !== ($cut ?? ''))
 	 {  
 	 echo"<tr><strong><td class='mail1' align='left'>Завтра день рождения празднуют:</td></strong></tr>";
 	 }
-	 while ($rows = mysql_fetch_assoc($sqls)) {
+	 while ($rows = Database::fetchAssoc($sqls)) {
 	 $tomm_date=time()+60*60*24;
 	 $tom_date=date("d.m.",$tomm_date);
-	 $dd=$rows['dr'];
+	 $dd = $rows['dr'] ?? '';
 	 $cut = substr($dd, 0, 6);
 	 if ($tom_date==$cut)
 	 {
 	 echo "<tr><td class='mail3'><b>".$rows['lname']."&nbsp".$rows['fname']."&nbsp".$rows['name']."</b> - (".$rows['otdel'].")";
-	 $ipus=$_SERVER["REMOTE_ADDR"];
+	 $ipus = $_SERVER["REMOTE_ADDR"] ?? '';
 	 echo "</td></tr>";
 	 }}
 	 echo"<tr><td class='mail1' align='left'>";
 	 echo"<tr><td class='mail1' align='left'><br>В ближайшие 3 дня, день рождения празднуют:</td></tr>";
-	 $sqls = mysql_query("SELECT * FROM `richstone_katalog` WHERE (`radiobutton` between 1 and 5) ORDER BY dr ASC");
-		while ($rows = mysql_fetch_assoc($sqls))
+	 $sqls = Database::query("SELECT * FROM `richstone_katalog` WHERE (`radiobutton` between 1 and 5) ORDER BY dr ASC");
+		while ($rows = Database::fetchAssoc($sqls))
 	 {
 	 $tomm_date=time()+((60*60*24)*2);
 	 $tom_date=date("d.m.",$tomm_date);
-	 $dd=$rows['dr'];
+	 $dd = $rows['dr'] ?? '';
 	 $cut = substr($dd, 0, 6);
 	 if ($tom_date==$cut)
 	 {
 	 echo "<tr><td class='mail3'><b>".$rows['lname']."&nbsp".$rows['fname']."&nbsp".$rows['name']."</b> - (".$rows['otdel'].")";
-	 $ipus=$_SERVER["REMOTE_ADDR"];
+	 $ipus = $_SERVER["REMOTE_ADDR"] ?? '';
 	 echo "</td></tr>";
 	 }
 	 $tomm_date=time()+((60*60*24)*3);
 	 $tom_date=date("d.m.",$tomm_date);
-	 $dd=$rows['dr'];
+	 $dd = $rows['dr'] ?? '';
 	 $cut = substr($dd, 0, 6);
 	 if ($tom_date==$cut)
 	 {
 	 echo "<tr><td class='mail3'><b>".$rows['lname']."&nbsp".$rows['fname']."&nbsp".$rows['name']."</b> - (".$rows['otdel'].")";
-	 $ipus=$_SERVER["REMOTE_ADDR"];
+	 $ipus = $_SERVER["REMOTE_ADDR"] ?? '';
 	 echo "</td></tr>";
 	 }}
 	 echo "</table>";
 } 
  else if ($current_time >= $pro20 && $current_time <= $pro21) {
-    $sql = mysql_query("SELECT * FROM `dr` WHERE id");
-	while ($row = mysql_fetch_row($sql))
+    $sql = Database::query("SELECT * FROM `dr` WHERE id");
+	while ($row = Database::fetchRow($sql))
 echo"<td valign='top' class='ottt1'><table cellpadding='0' cellspacing='0' border='0' >";
 	
 		echo"<tr><td class='mail1' align='left'>";
-		$sqls = mysql_query("SELECT * FROM `richstone_katalog` WHERE (`radiobutton` between 1 and 5)");
+		$sqls = Database::query("SELECT * FROM `richstone_katalog` WHERE (`radiobutton` between 1 and 5)");
 	 
 	 
-	 for ($i=0; $i<($rows = mysql_fetch_assoc($sqls)); $i++) 
+	 for ($i=0; $i<($rows = Database::fetchAssoc($sqls)); $i++) 
 	 {
-	 $dd=$rows['dr'];
+	 $dd = $rows['dr'] ?? '';
 	 $cut = substr($dd, 0, 6);
 	 $d=date('d.m.');
 	 
@@ -4011,7 +4031,7 @@ echo"<td valign='top' class='ottt1'><table cellpadding='0' cellspacing='0' borde
 	   <tr>
 	 <td class='mail1'><b>Поздравляем!!!</b>
 	 <a class=highslide onclick=\"return hs.htmlExpand(this, { objectType: 'iframe' } )\" href='dp.php?code=$rows[id]'></a>";
-	 $ipus=$_SERVER["REMOTE_ADDR"];
+	 $ipus = $_SERVER["REMOTE_ADDR"] ?? '';
 	 echo "</td></tr></table><br>";
 	 }
 	 //}else {echo "Больше трех";}
@@ -4020,61 +4040,62 @@ echo"<td valign='top' class='ottt1'><table cellpadding='0' cellspacing='0' borde
 	 echo "</td></tr>";
 	 
 	 //echo"<tr><td class='mail1' align='left'>Завтра день рождения празднуют:</td></tr>";
-	 $sqls = mysql_query("SELECT * FROM `richstone_katalog` WHERE (`radiobutton` between 1 and 5)");
+	 $sqls = Database::query("SELECT * FROM `richstone_katalog` WHERE (`radiobutton` between 1 and 5)");
 	 
-	 if ($tom_date!==$cut)
+	 $tom_date = date('d.m.', strtotime('tomorrow'));
+if ($tom_date !== ($cut ?? ''))
 	 {  
 	 echo"<tr><strong><td class='mail1' align='left'>Завтра день рождения празднуют:</td></strong></tr>";
 	 }
-	 while ($rows = mysql_fetch_assoc($sqls)) {
+	 while ($rows = Database::fetchAssoc($sqls)) {
 	 $tomm_date=time()+60*60*24;
 	 $tom_date=date("d.m.",$tomm_date);
-	 $dd=$rows['dr'];
+	 $dd = $rows['dr'] ?? '';
 	 $cut = substr($dd, 0, 6);
 	 if ($tom_date==$cut)
 	 {
 	 echo "<tr><td class='mail3'><b>".$rows['lname']."&nbsp".$rows['fname']."&nbsp".$rows['name']."</b> - (".$rows['otdel'].")";
-	 $ipus=$_SERVER["REMOTE_ADDR"];
+	 $ipus = $_SERVER["REMOTE_ADDR"] ?? '';
 	 echo "</td></tr>";
 	 }}
 	 echo"<tr><td class='mail1' align='left'>";
 	 echo"<tr><td class='mail1' align='left'><br>В ближайшие 3 дня, день рождения празднуют:</td></tr>";
-	 $sqls = mysql_query("SELECT * FROM `richstone_katalog` WHERE (`radiobutton` between 1 and 5) ORDER BY dr ASC");
-		while ($rows = mysql_fetch_assoc($sqls))
+	 $sqls = Database::query("SELECT * FROM `richstone_katalog` WHERE (`radiobutton` between 1 and 5) ORDER BY dr ASC");
+		while ($rows = Database::fetchAssoc($sqls))
 	 {
 	 $tomm_date=time()+((60*60*24)*2);
 	 $tom_date=date("d.m.",$tomm_date);
-	 $dd=$rows['dr'];
+	 $dd = $rows['dr'] ?? '';
 	 $cut = substr($dd, 0, 6);
 	 if ($tom_date==$cut)
 	 {
 	 echo "<tr><td class='mail3'><b>".$rows['lname']."&nbsp".$rows['fname']."&nbsp".$rows['name']."</b> - (".$rows['otdel'].")";
-	 $ipus=$_SERVER["REMOTE_ADDR"];
+	 $ipus = $_SERVER["REMOTE_ADDR"] ?? '';
 	 echo "</td></tr>";
 	 }
 	 $tomm_date=time()+((60*60*24)*3);
 	 $tom_date=date("d.m.",$tomm_date);
-	 $dd=$rows['dr'];
+	 $dd = $rows['dr'] ?? '';
 	 $cut = substr($dd, 0, 6);
 	 if ($tom_date==$cut)
 	 {
 	 echo "<tr><td class='mail3'><b>".$rows['lname']."&nbsp".$rows['fname']."&nbsp".$rows['name']."</b> - (".$rows['otdel'].")";
-	 $ipus=$_SERVER["REMOTE_ADDR"];
+	 $ipus = $_SERVER["REMOTE_ADDR"] ?? '';
 	 echo "</td></tr>";
 	 }}
 	 echo "</table>";
 } 
  else if ($current_time >= $pro21 && $current_time <= $pro22) {
-    $sql = mysql_query("SELECT * FROM `dr` WHERE id");
-	while ($row = mysql_fetch_row($sql))
+    $sql = Database::query("SELECT * FROM `dr` WHERE id");
+	while ($row = Database::fetchRow($sql))
 	echo"<td valign='top' class='ottt1'><table cellpadding='0' cellspacing='0' border='0' >";
 		echo"<tr><td class='mail1' align='left'>";
-		$sqls = mysql_query("SELECT * FROM `richstone_katalog` WHERE (`radiobutton` between 1 and 5)");
+		$sqls = Database::query("SELECT * FROM `richstone_katalog` WHERE (`radiobutton` between 1 and 5)");
 	 
 	 
-	 for ($i=0; $i<($rows = mysql_fetch_assoc($sqls)); $i++) 
+	 for ($i=0; $i<($rows = Database::fetchAssoc($sqls)); $i++) 
 	 {
-	 $dd=$rows['dr'];
+	 $dd = $rows['dr'] ?? '';
 	 $cut = substr($dd, 0, 6);
 	 $d=date('d.m.');
 	 
@@ -4121,28 +4142,29 @@ echo"<td valign='top' class='ottt1'><table cellpadding='0' cellspacing='0' borde
 	   <tr>
 	 <td class='mail1'><b>Поздравляем!!!</b>
 	 <a class=highslide onclick=\"return hs.htmlExpand(this, { objectType: 'iframe' } )\" href='dp.php?code=$rows[id]'></a>";
-	 $ipus=$_SERVER["REMOTE_ADDR"];
+	 $ipus = $_SERVER["REMOTE_ADDR"] ?? '';
 	 echo "</td></tr></table><br>";
 	 }
 	 //}else {echo "Больше трех";}
 	 }
 	
-	 $sqls = mysql_query("SELECT * FROM `richstone_katalog` WHERE (`radiobutton` between 1 and 5)");
+	 $sqls = Database::query("SELECT * FROM `richstone_katalog` WHERE (`radiobutton` between 1 and 5)");
 	 
-	 if ($tom_date!==$cut)
+	 $tom_date = date('d.m.', strtotime('tomorrow'));
+if ($tom_date !== ($cut ?? ''))
 	 {  
 	 echo"<tr><td class='mail1' align='left'>Завтра день рождения празднуют:</td></tr>";
 	 }
 	 
-		  while ($rows = mysql_fetch_assoc($sqls)) {
+		  while ($rows = Database::fetchAssoc($sqls)) {
 	 $tomm_date=time()+60*60*24;
 	 $tom_date=date("d.m.",$tomm_date);
-	 $dd=$rows['dr'];
+	 $dd = $rows['dr'] ?? '';
 	 $cut = substr($dd, 0, 6);
 	 if ($tom_date==$cut)
 	 {
 	 echo "<tr><td class='mail3'><b>".$rows['lname']."&nbsp".$rows['fname']."&nbsp".$rows['name']."</b> - (".$rows['otdel'].")";
-	 $ipus=$_SERVER["REMOTE_ADDR"];
+	 $ipus = $_SERVER["REMOTE_ADDR"] ?? '';
 	 echo "</td></tr>";
 	 }
 	 }
@@ -4154,28 +4176,28 @@ echo"<td valign='top' class='ottt1'><table cellpadding='0' cellspacing='0' borde
 	 echo"<tr><td class='mail1' align='left'>";
 	
 	 echo"<tr><td class='mail1' align='left'><br>В ближайшие 3 дня, день рождения празднуют:</td></tr>";
-	 $sqls = mysql_query("SELECT * FROM `richstone_katalog` WHERE (`radiobutton` between 1 and 5) ORDER BY dr ASC");
-	 while ($rows = mysql_fetch_assoc($sqls)) {
+	 $sqls = Database::query("SELECT * FROM `richstone_katalog` WHERE (`radiobutton` between 1 and 5) ORDER BY dr ASC");
+	 while ($rows = Database::fetchAssoc($sqls)) {
 	 $tomm_date=time()+((60*60*24)*2);
 	 $tom_date=date("d.m.",$tomm_date);
-	 $dd=$rows['dr'];
+	 $dd = $rows['dr'] ?? '';
 	 $cut = substr($dd, 0, 6);
 	 if ($tom_date==$cut)
 	 {
 	 echo "<tr><td class='mail3'><b>".$rows['lname']."&nbsp".$rows['fname']."&nbsp".$rows['name']."</b> - (".$rows['otdel'].")";
 	 
-	 $ipus=$_SERVER["REMOTE_ADDR"];
+	 $ipus = $_SERVER["REMOTE_ADDR"] ?? '';
 	 
 	 echo "</td></tr>";
 	 }
 	 $tomm_date=time()+((60*60*24)*3);
 	 $tom_date=date("d.m.",$tomm_date);
-	 $dd=$rows['dr'];
+	 $dd = $rows['dr'] ?? '';
 	 $cut = substr($dd, 0, 6);
 	 if ($tom_date==$cut)
 	 {
 	 echo "<tr><td class='mail3'><b>".$rows['lname']."&nbsp".$rows['fname']."&nbsp".$rows['name']."</b> - (".$rows['otdel'].")";
-	 $ipus=$_SERVER["REMOTE_ADDR"];
+	 $ipus = $_SERVER["REMOTE_ADDR"] ?? '';
 	 echo "</td></tr>";
 	 }
 	 }
@@ -4183,16 +4205,16 @@ echo"<td valign='top' class='ottt1'><table cellpadding='0' cellspacing='0' borde
 	 echo "</table>";
 } 
  else if ($current_time >= $pro22 && $current_time <= $pro23) {
-    $sql = mysql_query("SELECT * FROM `dr` WHERE id");
-	while ($row = mysql_fetch_row($sql))
+    $sql = Database::query("SELECT * FROM `dr` WHERE id");
+	while ($row = Database::fetchRow($sql))
 		echo"<td valign='top' class='ottt1'><table cellpadding='0' cellspacing='0' border='0' >";
 		echo"<tr><td class='mail1' align='left'>";
-		$sqls = mysql_query("SELECT * FROM `richstone_katalog` WHERE (`radiobutton` between 1 and 5)");
+		$sqls = Database::query("SELECT * FROM `richstone_katalog` WHERE (`radiobutton` between 1 and 5)");
 	 
 	 
-	 for ($i=0; $i<($rows = mysql_fetch_assoc($sqls)); $i++) 
+	 for ($i=0; $i<($rows = Database::fetchAssoc($sqls)); $i++) 
 	 {
-	 $dd=$rows['dr'];
+	 $dd = $rows['dr'] ?? '';
 	 $cut = substr($dd, 0, 6);
 	 $d=date('d.m.');
 	 
@@ -4239,7 +4261,7 @@ echo"<td valign='top' class='ottt1'><table cellpadding='0' cellspacing='0' borde
 	   <tr>
 	 <td class='mail1'><b>Поздравляем!!!</b>
 	 <a class=highslide onclick=\"return hs.htmlExpand(this, { objectType: 'iframe' } )\" href='dp.php?code=$rows[id]'></a>";
-	 $ipus=$_SERVER["REMOTE_ADDR"];
+	 $ipus = $_SERVER["REMOTE_ADDR"] ?? '';
 	 echo "</td></tr></table><br>";
 	 }
 	 //}else {echo "Больше трех";}
@@ -4251,48 +4273,49 @@ echo"<td valign='top' class='ottt1'><table cellpadding='0' cellspacing='0' borde
 	 echo"<td valign='top' class='ottt1'><table cellpadding='0' cellspacing='0' border='0' >";
 	 echo"<tr><td class='mail1' align='left'>";
 	
-	 $sqls = mysql_query("SELECT * FROM `richstone_katalog` WHERE (`radiobutton` between 1 and 5)");
+	 $sqls = Database::query("SELECT * FROM `richstone_katalog` WHERE (`radiobutton` between 1 and 5)");
 	 
-	 if ($tom_date!==$cut)
+	 $tom_date = date('d.m.', strtotime('tomorrow'));
+if ($tom_date !== ($cut ?? ''))
 	 {  
 	 echo"<tr><td class='mail1' align='left'>Завтра день рождения празднуют:</td></tr>";
 	 }
 	 
-		  while ($rows = mysql_fetch_assoc($sqls)) {
+		  while ($rows = Database::fetchAssoc($sqls)) {
 	 $tomm_date=time()+60*60*24;
 	 $tom_date=date("d.m.",$tomm_date);
-	 $dd=$rows['dr'];
+	 $dd = $rows['dr'] ?? '';
 	 $cut = substr($dd, 0, 6);
 	 if ($tom_date==$cut)
 	 {
 	 echo "<tr><td class='mail3'><b>".$rows['lname']."&nbsp".$rows['fname']."&nbsp".$rows['name']."</b> - (".$rows['otdel'].")";
-	 $ipus=$_SERVER["REMOTE_ADDR"];
+	 $ipus = $_SERVER["REMOTE_ADDR"] ?? '';
 	 echo "</td></tr>";
 	 }
 	 }
 	 echo"<tr><td class='mail1' align='left'><br>В ближайшие 3 дня, день рождения празднуют:</td></tr>";
-	 $sqls = mysql_query("SELECT * FROM `richstone_katalog` WHERE (`radiobutton` between 1 and 5) ORDER BY dr ASC");
-	 while ($rows = mysql_fetch_assoc($sqls)) {
+	 $sqls = Database::query("SELECT * FROM `richstone_katalog` WHERE (`radiobutton` between 1 and 5) ORDER BY dr ASC");
+	 while ($rows = Database::fetchAssoc($sqls)) {
 	 $tomm_date=time()+((60*60*24)*2);
 	 $tom_date=date("d.m.",$tomm_date);
-	 $dd=$rows['dr'];
+	 $dd = $rows['dr'] ?? '';
 	 $cut = substr($dd, 0, 6);
 	 if ($tom_date==$cut)
 	 {
 	 echo "<tr><td class='mail3'><b>".$rows['lname']."&nbsp".$rows['fname']."&nbsp".$rows['name']."</b> - (".$rows['otdel'].")";
 	 
-	 $ipus=$_SERVER["REMOTE_ADDR"];
+	 $ipus = $_SERVER["REMOTE_ADDR"] ?? '';
 	 
 	 echo "</td></tr>";
 	 }
 	 $tomm_date=time()+((60*60*24)*3);
 	 $tom_date=date("d.m.",$tomm_date);
-	 $dd=$rows['dr'];
+	 $dd = $rows['dr'] ?? '';
 	 $cut = substr($dd, 0, 6);
 	 if ($tom_date==$cut)
 	 {
 	 echo "<tr><td class='mail3'><b>".$rows['lname']."&nbsp".$rows['fname']."&nbsp".$rows['name']."</b> - (".$rows['otdel'].")";
-	 $ipus=$_SERVER["REMOTE_ADDR"];
+	 $ipus = $_SERVER["REMOTE_ADDR"] ?? '';
 	 echo "</td></tr>";
 	 }
 	 }
@@ -4301,17 +4324,17 @@ echo"<td valign='top' class='ottt1'><table cellpadding='0' cellspacing='0' borde
 	
 } 
  else if ($current_time >= $pro23 && $current_time <= $pro24) {
-    $sql = mysql_query("SELECT * FROM `dr` WHERE id");
-	while ($row = mysql_fetch_row($sql))
+    $sql = Database::query("SELECT * FROM `dr` WHERE id");
+	while ($row = Database::fetchRow($sql))
 echo"<td valign='top' class='ottt1'><table cellpadding='0' cellspacing='0' border='0' >";
 	
 		echo"<tr><td class='mail1' align='left'>";
-		$sqls = mysql_query("SELECT * FROM `richstone_katalog` WHERE (`radiobutton` between 1 and 5)");
+		$sqls = Database::query("SELECT * FROM `richstone_katalog` WHERE (`radiobutton` between 1 and 5)");
 	 
 	 
-	 for ($i=0; $i<($rows = mysql_fetch_assoc($sqls)); $i++) 
+	 for ($i=0; $i<($rows = Database::fetchAssoc($sqls)); $i++) 
 	 {
-	 $dd=$rows['dr'];
+	 $dd = $rows['dr'] ?? '';
 	 $cut = substr($dd, 0, 6);
 	 $d=date('d.m.');
 	 
@@ -4358,7 +4381,7 @@ echo"<td valign='top' class='ottt1'><table cellpadding='0' cellspacing='0' borde
 	   <tr>
 	 <td class='mail1'><b>Поздравляем!!!</b>
 	 <a class=highslide onclick=\"return hs.htmlExpand(this, { objectType: 'iframe' } )\" href='dp.php?code=$rows[id]'></a>";
-	 $ipus=$_SERVER["REMOTE_ADDR"];
+	 $ipus = $_SERVER["REMOTE_ADDR"] ?? '';
 	 echo "</td></tr></table><br>";
 	 }
 	 //}else {echo "Больше трех";}
@@ -4367,62 +4390,63 @@ echo"<td valign='top' class='ottt1'><table cellpadding='0' cellspacing='0' borde
 	 echo "</td></tr>";
 	 
 	 //echo"<tr><td class='mail1' align='left'>Завтра день рождения празднуют:</td></tr>";
-	 $sqls = mysql_query("SELECT * FROM `richstone_katalog` WHERE (`radiobutton` between 1 and 5)");
+	 $sqls = Database::query("SELECT * FROM `richstone_katalog` WHERE (`radiobutton` between 1 and 5)");
 	 
-	 if ($tom_date!==$cut)
+	 $tom_date = date('d.m.', strtotime('tomorrow'));
+if ($tom_date !== ($cut ?? ''))
 	 {  
 	 echo"<tr><strong><td class='mail1' align='left'>Завтра день рождения празднуют:</td></strong></tr>";
 	 }
-	 while ($rows = mysql_fetch_assoc($sqls)) {
+	 while ($rows = Database::fetchAssoc($sqls)) {
 	 $tomm_date=time()+60*60*24;
 	 $tom_date=date("d.m.",$tomm_date);
-	 $dd=$rows['dr'];
+	 $dd = $rows['dr'] ?? '';
 	 $cut = substr($dd, 0, 6);
 	 if ($tom_date==$cut)
 	 {
 	 echo "<tr><td class='mail3'><b>".$rows['lname']."&nbsp".$rows['fname']."&nbsp".$rows['name']."</b> - (".$rows['otdel'].")";
-	 $ipus=$_SERVER["REMOTE_ADDR"];
+	 $ipus = $_SERVER["REMOTE_ADDR"] ?? '';
 	 echo "</td></tr>";
 	 }}
 	 echo"<tr><td class='mail1' align='left'>";
 	 echo"<tr><td class='mail1' align='left'><br>В ближайшие 3 дня, день рождения празднуют:</td></tr>";
-	 $sqls = mysql_query("SELECT * FROM `richstone_katalog` WHERE (`radiobutton` between 1 and 5) ORDER BY dr ASC");
-		while ($rows = mysql_fetch_assoc($sqls))
+	 $sqls = Database::query("SELECT * FROM `richstone_katalog` WHERE (`radiobutton` between 1 and 5) ORDER BY dr ASC");
+		while ($rows = Database::fetchAssoc($sqls))
 	 {
 	 $tomm_date=time()+((60*60*24)*2);
 	 $tom_date=date("d.m.",$tomm_date);
-	 $dd=$rows['dr'];
+	 $dd = $rows['dr'] ?? '';
 	 $cut = substr($dd, 0, 6);
 	 if ($tom_date==$cut)
 	 {
 	 echo "<tr><td class='mail3'><b>".$rows['lname']."&nbsp".$rows['fname']."&nbsp".$rows['name']."</b> - (".$rows['otdel'].")";
-	 $ipus=$_SERVER["REMOTE_ADDR"];
+	 $ipus = $_SERVER["REMOTE_ADDR"] ?? '';
 	 echo "</td></tr>";
 	 }
 	 $tomm_date=time()+((60*60*24)*3);
 	 $tom_date=date("d.m.",$tomm_date);
-	 $dd=$rows['dr'];
+	 $dd = $rows['dr'] ?? '';
 	 $cut = substr($dd, 0, 6);
 	 if ($tom_date==$cut)
 	 {
 	 echo "<tr><td class='mail3'><b>".$rows['lname']."&nbsp".$rows['fname']."&nbsp".$rows['name']."</b> - (".$rows['otdel'].")";
-	 $ipus=$_SERVER["REMOTE_ADDR"];
+	 $ipus = $_SERVER["REMOTE_ADDR"] ?? '';
 	 echo "</td></tr>";
 	 }}
 	 echo "</table>";
 } 
  else if ($current_time >= $pro24 && $current_time <= $pro25) {
-    $sql = mysql_query("SELECT * FROM `dr` WHERE id");
-	while ($row = mysql_fetch_row($sql))
+    $sql = Database::query("SELECT * FROM `dr` WHERE id");
+	while ($row = Database::fetchRow($sql))
 echo"<td valign='top' class='ottt1'><table cellpadding='0' cellspacing='0' border='0' >";
 	
 		echo"<tr><td class='mail1' align='left'>";
-		$sqls = mysql_query("SELECT * FROM `richstone_katalog` WHERE (`radiobutton` between 1 and 5)");
+		$sqls = Database::query("SELECT * FROM `richstone_katalog` WHERE (`radiobutton` between 1 and 5)");
 	 
 	 
-	 for ($i=0; $i<($rows = mysql_fetch_assoc($sqls)); $i++) 
+	 for ($i=0; $i<($rows = Database::fetchAssoc($sqls)); $i++) 
 	 {
-	 $dd=$rows['dr'];
+	 $dd = $rows['dr'] ?? '';
 	 $cut = substr($dd, 0, 6);
 	 $d=date('d.m.');
 	 
@@ -4469,7 +4493,7 @@ echo"<td valign='top' class='ottt1'><table cellpadding='0' cellspacing='0' borde
 	   <tr>
 	 <td class='mail1'><b>Поздравляем!!!</b>
 	 <a class=highslide onclick=\"return hs.htmlExpand(this, { objectType: 'iframe' } )\" href='dp.php?code=$rows[id]'></a>";
-	 $ipus=$_SERVER["REMOTE_ADDR"];
+	 $ipus = $_SERVER["REMOTE_ADDR"] ?? '';
 	 echo "</td></tr></table><br>";
 	 }
 	 //}else {echo "Больше трех";}
@@ -4478,62 +4502,63 @@ echo"<td valign='top' class='ottt1'><table cellpadding='0' cellspacing='0' borde
 	 echo "</td></tr>";
 	 
 	 //echo"<tr><td class='mail1' align='left'>Завтра день рождения празднуют:</td></tr>";
-	 $sqls = mysql_query("SELECT * FROM `richstone_katalog` WHERE (`radiobutton` between 1 and 5)");
+	 $sqls = Database::query("SELECT * FROM `richstone_katalog` WHERE (`radiobutton` between 1 and 5)");
 	 
-	 if ($tom_date!==$cut)
+	 $tom_date = date('d.m.', strtotime('tomorrow'));
+if ($tom_date !== ($cut ?? ''))
 	 {  
 	 echo"<tr><strong><td class='mail1' align='left'>Завтра день рождения празднуют:</td></strong></tr>";
 	 }
-	 while ($rows = mysql_fetch_assoc($sqls)) {
+	 while ($rows = Database::fetchAssoc($sqls)) {
 	 $tomm_date=time()+60*60*24;
 	 $tom_date=date("d.m.",$tomm_date);
-	 $dd=$rows['dr'];
+	 $dd = $rows['dr'] ?? '';
 	 $cut = substr($dd, 0, 6);
 	 if ($tom_date==$cut)
 	 {
 	 echo "<tr><td class='mail3'><b>".$rows['lname']."&nbsp".$rows['fname']."&nbsp".$rows['name']."</b> - (".$rows['otdel'].")";
-	 $ipus=$_SERVER["REMOTE_ADDR"];
+	 $ipus = $_SERVER["REMOTE_ADDR"] ?? '';
 	 echo "</td></tr>";
 	 }}
 	 echo"<tr><td class='mail1' align='left'>";
 	 echo"<tr><td class='mail1' align='left'><br>В ближайшие 3 дня, день рождения празднуют:</td></tr>";
-	 $sqls = mysql_query("SELECT * FROM `richstone_katalog` WHERE (`radiobutton` between 1 and 5) ORDER BY dr ASC");
-		while ($rows = mysql_fetch_assoc($sqls))
+	 $sqls = Database::query("SELECT * FROM `richstone_katalog` WHERE (`radiobutton` between 1 and 5) ORDER BY dr ASC");
+		while ($rows = Database::fetchAssoc($sqls))
 	 {
 	 $tomm_date=time()+((60*60*24)*2);
 	 $tom_date=date("d.m.",$tomm_date);
-	 $dd=$rows['dr'];
+	 $dd = $rows['dr'] ?? '';
 	 $cut = substr($dd, 0, 6);
 	 if ($tom_date==$cut)
 	 {
 	 echo "<tr><td class='mail3'><b>".$rows['lname']."&nbsp".$rows['fname']."&nbsp".$rows['name']."</b> - (".$rows['otdel'].")";
-	 $ipus=$_SERVER["REMOTE_ADDR"];
+	 $ipus = $_SERVER["REMOTE_ADDR"] ?? '';
 	 echo "</td></tr>";
 	 }
 	 $tomm_date=time()+((60*60*24)*3);
 	 $tom_date=date("d.m.",$tomm_date);
-	 $dd=$rows['dr'];
+	 $dd = $rows['dr'] ?? '';
 	 $cut = substr($dd, 0, 6);
 	 if ($tom_date==$cut)
 	 {
 	 echo "<tr><td class='mail3'><b>".$rows['lname']."&nbsp".$rows['fname']."&nbsp".$rows['name']."</b> - (".$rows['otdel'].")";
-	 $ipus=$_SERVER["REMOTE_ADDR"];
+	 $ipus = $_SERVER["REMOTE_ADDR"] ?? '';
 	 echo "</td></tr>";
 	 }}
 	 echo "</table>";
 } 
  else if ($current_time >= $pro25 && $current_time <= $pro26) {
-    $sql = mysql_query("SELECT * FROM `dr` WHERE id");
-	while ($row = mysql_fetch_row($sql))
+    $sql = Database::query("SELECT * FROM `dr` WHERE id");
+	while ($row = Database::fetchRow($sql))
 echo"<td valign='top' class='ottt1'><table cellpadding='0' cellspacing='0' border='0' >";
 	
 		echo"<tr><td class='mail1' align='left'>";
-		$sqls = mysql_query("SELECT * FROM `richstone_katalog` WHERE (`radiobutton` between 1 and 5)");
+		$sqls = Database::query("SELECT * FROM `richstone_katalog` WHERE (`radiobutton` between 1 and 5)");
 	 
 	 
-	 for ($i=0; $i<($rows = mysql_fetch_assoc($sqls)); $i++) 
+	 for ($i=0; $i<($rows = Database::fetchAssoc($sqls)); $i++) 
 	 {
-	 $dd=$rows['dr'];
+	 $dd = $rows['dr'] ?? '';
 	 $cut = substr($dd, 0, 6);
 	 $d=date('d.m.');
 	 
@@ -4580,7 +4605,7 @@ echo"<td valign='top' class='ottt1'><table cellpadding='0' cellspacing='0' borde
 	   <tr>
 	 <td class='mail1'><b>Поздравляем!!!</b>
 	 <a class=highslide onclick=\"return hs.htmlExpand(this, { objectType: 'iframe' } )\" href='dp.php?code=$rows[id]'></a>";
-	 $ipus=$_SERVER["REMOTE_ADDR"];
+	 $ipus = $_SERVER["REMOTE_ADDR"] ?? '';
 	 echo "</td></tr></table><br>";
 	 }
 	 //}else {echo "Больше трех";}
@@ -4589,62 +4614,63 @@ echo"<td valign='top' class='ottt1'><table cellpadding='0' cellspacing='0' borde
 	 echo "</td></tr>";
 	 
 	 //echo"<tr><td class='mail1' align='left'>Завтра день рождения празднуют:</td></tr>";
-	 $sqls = mysql_query("SELECT * FROM `richstone_katalog` WHERE (`radiobutton` between 1 and 5)");
+	 $sqls = Database::query("SELECT * FROM `richstone_katalog` WHERE (`radiobutton` between 1 and 5)");
 	 
-	 if ($tom_date!==$cut)
+	 $tom_date = date('d.m.', strtotime('tomorrow'));
+if ($tom_date !== ($cut ?? ''))
 	 {  
 	 echo"<tr><strong><td class='mail1' align='left'>Завтра день рождения празднуют:</td></strong></tr>";
 	 }
-	 while ($rows = mysql_fetch_assoc($sqls)) {
+	 while ($rows = Database::fetchAssoc($sqls)) {
 	 $tomm_date=time()+60*60*24;
 	 $tom_date=date("d.m.",$tomm_date);
-	 $dd=$rows['dr'];
+	 $dd = $rows['dr'] ?? '';
 	 $cut = substr($dd, 0, 6);
 	 if ($tom_date==$cut)
 	 {
 	 echo "<tr><td class='mail3'><b>".$rows['lname']."&nbsp".$rows['fname']."&nbsp".$rows['name']."</b> - (".$rows['otdel'].")";
-	 $ipus=$_SERVER["REMOTE_ADDR"];
+	 $ipus = $_SERVER["REMOTE_ADDR"] ?? '';
 	 echo "</td></tr>";
 	 }}
 	 echo"<tr><td class='mail1' align='left'>";
 	 echo"<tr><td class='mail1' align='left'><br>В ближайшие 3 дня, день рождения празднуют:</td></tr>";
-	 $sqls = mysql_query("SELECT * FROM `richstone_katalog` WHERE (`radiobutton` between 1 and 5) ORDER BY dr ASC");
-		while ($rows = mysql_fetch_assoc($sqls))
+	 $sqls = Database::query("SELECT * FROM `richstone_katalog` WHERE (`radiobutton` between 1 and 5) ORDER BY dr ASC");
+		while ($rows = Database::fetchAssoc($sqls))
 	 {
 	 $tomm_date=time()+((60*60*24)*2);
 	 $tom_date=date("d.m.",$tomm_date);
-	 $dd=$rows['dr'];
+	 $dd = $rows['dr'] ?? '';
 	 $cut = substr($dd, 0, 6);
 	 if ($tom_date==$cut)
 	 {
 	 echo "<tr><td class='mail3'><b>".$rows['lname']."&nbsp".$rows['fname']."&nbsp".$rows['name']."</b> - (".$rows['otdel'].")";
-	 $ipus=$_SERVER["REMOTE_ADDR"];
+	 $ipus = $_SERVER["REMOTE_ADDR"] ?? '';
 	 echo "</td></tr>";
 	 }
 	 $tomm_date=time()+((60*60*24)*3);
 	 $tom_date=date("d.m.",$tomm_date);
-	 $dd=$rows['dr'];
+	 $dd = $rows['dr'] ?? '';
 	 $cut = substr($dd, 0, 6);
 	 if ($tom_date==$cut)
 	 {
 	 echo "<tr><td class='mail3'><b>".$rows['lname']."&nbsp".$rows['fname']."&nbsp".$rows['name']."</b> - (".$rows['otdel'].")";
-	 $ipus=$_SERVER["REMOTE_ADDR"];
+	 $ipus = $_SERVER["REMOTE_ADDR"] ?? '';
 	 echo "</td></tr>";
 	 }}
 	 echo "</table>";
 } 
  else if ($current_time >= $pro26 && $current_time <= $pro27) {
-    $sql = mysql_query("SELECT * FROM `dr` WHERE id");
-	while ($row = mysql_fetch_row($sql))
+    $sql = Database::query("SELECT * FROM `dr` WHERE id");
+	while ($row = Database::fetchRow($sql))
 echo"<td valign='top' class='ottt1'><table cellpadding='0' cellspacing='0' border='0' >";
 	
 		echo"<tr><td class='mail1' align='left'>";
-		$sqls = mysql_query("SELECT * FROM `richstone_katalog` WHERE (`radiobutton` between 1 and 5)");
+		$sqls = Database::query("SELECT * FROM `richstone_katalog` WHERE (`radiobutton` between 1 and 5)");
 	 
 	 
-	 for ($i=0; $i<($rows = mysql_fetch_assoc($sqls)); $i++) 
+	 for ($i=0; $i<($rows = Database::fetchAssoc($sqls)); $i++) 
 	 {
-	 $dd=$rows['dr'];
+	 $dd = $rows['dr'] ?? '';
 	 $cut = substr($dd, 0, 6);
 	 $d=date('d.m.');
 	 
@@ -4691,7 +4717,7 @@ echo"<td valign='top' class='ottt1'><table cellpadding='0' cellspacing='0' borde
 	   <tr>
 	 <td class='mail1'><b>Поздравляем!!!</b>
 	 <a class=highslide onclick=\"return hs.htmlExpand(this, { objectType: 'iframe' } )\" href='dp.php?code=$rows[id]'></a>";
-	 $ipus=$_SERVER["REMOTE_ADDR"];
+	 $ipus = $_SERVER["REMOTE_ADDR"] ?? '';
 	 echo "</td></tr></table><br>";
 	 }
 	 //}else {echo "Больше трех";}
@@ -4700,63 +4726,64 @@ echo"<td valign='top' class='ottt1'><table cellpadding='0' cellspacing='0' borde
 	 echo "</td></tr>";
 	 
 	 //echo"<tr><td class='mail1' align='left'>Завтра день рождения празднуют:</td></tr>";
-	 $sqls = mysql_query("SELECT * FROM `richstone_katalog` WHERE (`radiobutton` between 1 and 5)");
+	 $sqls = Database::query("SELECT * FROM `richstone_katalog` WHERE (`radiobutton` between 1 and 5)");
 	 
-	 if ($tom_date!==$cut)
+	 $tom_date = date('d.m.', strtotime('tomorrow'));
+if ($tom_date !== ($cut ?? ''))
 	 {  
 	 echo"<tr><strong><td class='mail1' align='left'>Завтра день рождения празднуют:</td></strong></tr>";
 	 }
-	 while ($rows = mysql_fetch_assoc($sqls)) {
+	 while ($rows = Database::fetchAssoc($sqls)) {
 	 $tomm_date=time()+60*60*24;
 	 $tom_date=date("d.m.",$tomm_date);
-	 $dd=$rows['dr'];
+	 $dd = $rows['dr'] ?? '';
 	 $cut = substr($dd, 0, 6);
 	 if ($tom_date==$cut)
 	 {
 	 echo "<tr><td class='mail3'><b>".$rows['lname']."&nbsp".$rows['fname']."&nbsp".$rows['name']."</b> - (".$rows['otdel'].")";
-	 $ipus=$_SERVER["REMOTE_ADDR"];
+	 $ipus = $_SERVER["REMOTE_ADDR"] ?? '';
 	 echo "</td></tr>";
 	 }}
 	 echo"<tr><td class='mail1' align='left'>";
 	 echo"<tr><td class='mail1' align='left'><br>В ближайшие 3 дня, день рождения празднуют:</td></tr>";
-	 $sqls = mysql_query("SELECT * FROM `richstone_katalog` WHERE (`radiobutton` between 1 and 5) ORDER BY dr ASC");
-		while ($rows = mysql_fetch_assoc($sqls))
+	 $sqls = Database::query("SELECT * FROM `richstone_katalog` WHERE (`radiobutton` between 1 and 5) ORDER BY dr ASC");
+		while ($rows = Database::fetchAssoc($sqls))
 	 {
 	 $tomm_date=time()+((60*60*24)*2);
 	 $tom_date=date("d.m.",$tomm_date);
-	 $dd=$rows['dr'];
+	 $dd = $rows['dr'] ?? '';
 	 $cut = substr($dd, 0, 6);
 	 if ($tom_date==$cut)
 	 {
 	 echo "<tr><td class='mail3'><b>".$rows['lname']."&nbsp".$rows['fname']."&nbsp".$rows['name']."</b> - (".$rows['otdel'].")";
-	 $ipus=$_SERVER["REMOTE_ADDR"];
+	 $ipus = $_SERVER["REMOTE_ADDR"] ?? '';
 	 echo "</td></tr>";
 	 }
 	 $tomm_date=time()+((60*60*24)*3);
 	 $tom_date=date("d.m.",$tomm_date);
-	 $dd=$rows['dr'];
+	 $dd = $rows['dr'] ?? '';
 	 $cut = substr($dd, 0, 6);
 	 if ($tom_date==$cut)
 	 {
 	 echo "<tr><td class='mail3'><b>".$rows['lname']."&nbsp".$rows['fname']."&nbsp".$rows['name']."</b> - (".$rows['otdel'].")";
-	 $ipus=$_SERVER["REMOTE_ADDR"];
+	 $ipus = $_SERVER["REMOTE_ADDR"] ?? '';
 	 echo "</td></tr>";
 	 }}
 	 echo "</table>";
 } 
 
  else if ($current_time >= $pro27 && $current_time <= $end) {
-    $sql = mysql_query("SELECT * FROM `dr` WHERE id");
-	while ($row = mysql_fetch_row($sql))
+    $sql = Database::query("SELECT * FROM `dr` WHERE id");
+	while ($row = Database::fetchRow($sql))
 echo"<td valign='top' class='ottt1'><table cellpadding='0' cellspacing='0' border='0' >";
 	
 		echo"<tr><td class='mail1' align='left'>";
-		$sqls = mysql_query("SELECT * FROM `richstone_katalog` WHERE (`radiobutton` between 1 and 5)");
+		$sqls = Database::query("SELECT * FROM `richstone_katalog` WHERE (`radiobutton` between 1 and 5)");
 	 
 	 
-	 for ($i=0; $i<($rows = mysql_fetch_assoc($sqls)); $i++) 
+	 for ($i=0; $i<($rows = Database::fetchAssoc($sqls)); $i++) 
 	 {
-	 $dd=$rows['dr'];
+	 $dd = $rows['dr'] ?? '';
 	 $cut = substr($dd, 0, 6);
 	 $d=date('d.m.');
 	 
@@ -4803,7 +4830,7 @@ echo"<td valign='top' class='ottt1'><table cellpadding='0' cellspacing='0' borde
 	   <tr>
 	 <td class='mail1'><b>Поздравляем!!!</b>
 	 <a class=highslide onclick=\"return hs.htmlExpand(this, { objectType: 'iframe' } )\" href='dp.php?code=$rows[id]'></a>";
-	 $ipus=$_SERVER["REMOTE_ADDR"];
+	 $ipus = $_SERVER["REMOTE_ADDR"] ?? '';
 	 echo "</td></tr></table><br>";
 	 }
 	 //}else {echo "Больше трех";}
@@ -4812,62 +4839,63 @@ echo"<td valign='top' class='ottt1'><table cellpadding='0' cellspacing='0' borde
 	 echo "</td></tr>";
 	 
 	 //echo"<tr><td class='mail1' align='left'>Завтра день рождения празднуют:</td></tr>";
-	 $sqls = mysql_query("SELECT * FROM `richstone_katalog` WHERE (`radiobutton` between 1 and 5)");
+	 $sqls = Database::query("SELECT * FROM `richstone_katalog` WHERE (`radiobutton` between 1 and 5)");
 	 
-	 if ($tom_date!==$cut)
+	 $tom_date = date('d.m.', strtotime('tomorrow'));
+if ($tom_date !== ($cut ?? ''))
 	 {  
 	 echo"<tr><strong><td class='mail1' align='left'>Завтра день рождения празднуют:</td></strong></tr>";
 	 }
-	 while ($rows = mysql_fetch_assoc($sqls)) {
+	 while ($rows = Database::fetchAssoc($sqls)) {
 	 $tomm_date=time()+60*60*24;
 	 $tom_date=date("d.m.",$tomm_date);
-	 $dd=$rows['dr'];
+	 $dd = $rows['dr'] ?? '';
 	 $cut = substr($dd, 0, 6);
 	 if ($tom_date==$cut)
 	 {
 	 echo "<tr><td class='mail3'><b>".$rows['lname']."&nbsp".$rows['fname']."&nbsp".$rows['name']."</b> - (".$rows['otdel'].")";
-	 $ipus=$_SERVER["REMOTE_ADDR"];
+	 $ipus = $_SERVER["REMOTE_ADDR"] ?? '';
 	 echo "</td></tr>";
 	 }}
 	 echo"<tr><td class='mail1' align='left'>";
 	 echo"<tr><td class='mail1' align='left'><br>В ближайшие 3 дня, день рождения празднуют:</td></tr>";
-	 $sqls = mysql_query("SELECT * FROM `richstone_katalog` WHERE (`radiobutton` between 1 and 5) ORDER BY dr ASC");
-		while ($rows = mysql_fetch_assoc($sqls))
+	 $sqls = Database::query("SELECT * FROM `richstone_katalog` WHERE (`radiobutton` between 1 and 5) ORDER BY dr ASC");
+		while ($rows = Database::fetchAssoc($sqls))
 	 {
 	 $tomm_date=time()+((60*60*24)*2);
 	 $tom_date=date("d.m.",$tomm_date);
-	 $dd=$rows['dr'];
+	 $dd = $rows['dr'] ?? '';
 	 $cut = substr($dd, 0, 6);
 	 if ($tom_date==$cut)
 	 {
 	 echo "<tr><td class='mail3'><b>".$rows['lname']."&nbsp".$rows['fname']."&nbsp".$rows['name']."</b> - (".$rows['otdel'].")";
-	 $ipus=$_SERVER["REMOTE_ADDR"];
+	 $ipus = $_SERVER["REMOTE_ADDR"] ?? '';
 	 echo "</td></tr>";
 	 }
 	 $tomm_date=time()+((60*60*24)*3);
 	 $tom_date=date("d.m.",$tomm_date);
-	 $dd=$rows['dr'];
+	 $dd = $rows['dr'] ?? '';
 	 $cut = substr($dd, 0, 6);
 	 if ($tom_date==$cut)
 	 {
 	 echo "<tr><td class='mail3'><b>".$rows['lname']."&nbsp".$rows['fname']."&nbsp".$rows['name']."</b> - (".$rows['otdel'].")";
-	 $ipus=$_SERVER["REMOTE_ADDR"];
+	 $ipus = $_SERVER["REMOTE_ADDR"] ?? '';
 	 echo "</td></tr>";
 	 }}
 	 echo "</table>";
 } 
 else {
-    $sql = mysql_query("SELECT * FROM `dr` WHERE id");
-	while ($row = mysql_fetch_row($sql))
+    $sql = Database::query("SELECT * FROM `dr` WHERE id");
+	while ($row = Database::fetchRow($sql))
 echo"<td valign='top' class='ottt1'><table cellpadding='0' cellspacing='0' border='0' >";
 	
 		echo"<tr><td class='mail1' align='left'>";
-		$sqls = mysql_query("SELECT * FROM `richstone_katalog` WHERE (`radiobutton` between 1 and 5)");
+		$sqls = Database::query("SELECT * FROM `richstone_katalog` WHERE (`radiobutton` between 1 and 5)");
 	 
 	 
-	 for ($i=0; $i<($rows = mysql_fetch_assoc($sqls)); $i++) 
+	 for ($i=0; $i<($rows = Database::fetchAssoc($sqls)); $i++) 
 	 {
-	 $dd=$rows['dr'];
+	 $dd = $rows['dr'] ?? '';
 	 $cut = substr($dd, 0, 6);
 	 $d=date('d.m.');
 	 
@@ -4914,7 +4942,7 @@ echo"<td valign='top' class='ottt1'><table cellpadding='0' cellspacing='0' borde
 	   <tr>
 	 <td class='mail1'><b>Поздравляем!!!</b>
 	 <a class=highslide onclick=\"return hs.htmlExpand(this, { objectType: 'iframe' } )\" href='dp.php?code=$rows[id]'></a>";
-	 $ipus=$_SERVER["REMOTE_ADDR"];
+	 $ipus = $_SERVER["REMOTE_ADDR"] ?? '';
 	 echo "</td></tr></table><br>";
 	 }
 	 //}else {echo "Больше трех";}
@@ -4923,46 +4951,47 @@ echo"<td valign='top' class='ottt1'><table cellpadding='0' cellspacing='0' borde
 	 echo "</td></tr>";
 	 
 	 //echo"<tr><td class='mail1' align='left'>Завтра день рождения празднуют:</td></tr>";
-	 $sqls = mysql_query("SELECT * FROM `richstone_katalog` WHERE (`radiobutton` between 1 and 5)");
+	 $sqls = Database::query("SELECT * FROM `richstone_katalog` WHERE (`radiobutton` between 1 and 5)");
 	 
-	 if ($tom_date!==$cut)
+	 $tom_date = date('d.m.', strtotime('tomorrow'));
+if ($tom_date !== ($cut ?? ''))
 	 {  
 	 echo"<tr><strong><td class='mail1' align='left'>Завтра день рождения празднуют:</td></strong></tr>";
 	 }
-	 while ($rows = mysql_fetch_assoc($sqls)) {
+	 while ($rows = Database::fetchAssoc($sqls)) {
 	 $tomm_date=time()+60*60*24;
 	 $tom_date=date("d.m.",$tomm_date);
-	 $dd=$rows['dr'];
+	 $dd = $rows['dr'] ?? '';
 	 $cut = substr($dd, 0, 6);
 	 if ($tom_date==$cut)
 	 {
 	 echo "<tr><td class='mail3'><b>".$rows['lname']."&nbsp".$rows['fname']."&nbsp".$rows['name']."</b> - (".$rows['otdel'].")";
-	 $ipus=$_SERVER["REMOTE_ADDR"];
+	 $ipus = $_SERVER["REMOTE_ADDR"] ?? '';
 	 echo "</td></tr>";
 	 }}
 	 echo"<tr><td class='mail1' align='left'>";
 	 echo"<tr><td class='mail1' align='left'><br>В ближайшие 3 дня, день рождения празднуют:</td></tr>";
-	 $sqls = mysql_query("SELECT * FROM `richstone_katalog` WHERE (`radiobutton` between 1 and 5) ORDER BY dr ASC");
-		while ($rows = mysql_fetch_assoc($sqls))
+	 $sqls = Database::query("SELECT * FROM `richstone_katalog` WHERE (`radiobutton` between 1 and 5) ORDER BY dr ASC");
+		while ($rows = Database::fetchAssoc($sqls))
 	 {
 	 $tomm_date=time()+((60*60*24)*2);
 	 $tom_date=date("d.m.",$tomm_date);
-	 $dd=$rows['dr'];
+	 $dd = $rows['dr'] ?? '';
 	 $cut = substr($dd, 0, 6);
 	 if ($tom_date==$cut)
 	 {
 	 echo "<tr><td class='mail3'><b>".$rows['lname']."&nbsp".$rows['fname']."&nbsp".$rows['name']."</b> - (".$rows['otdel'].")";
-	 $ipus=$_SERVER["REMOTE_ADDR"];
+	 $ipus = $_SERVER["REMOTE_ADDR"] ?? '';
 	 echo "</td></tr>";
 	 }
 	 $tomm_date=time()+((60*60*24)*3);
 	 $tom_date=date("d.m.",$tomm_date);
-	 $dd=$rows['dr'];
+	 $dd = $rows['dr'] ?? '';
 	 $cut = substr($dd, 0, 6);
 	 if ($tom_date==$cut)
 	 {
 	 echo "<tr><td class='mail3'><b>".$rows['lname']."&nbsp".$rows['fname']."&nbsp".$rows['name']."</b> - (".$rows['otdel'].")";
-	 $ipus=$_SERVER["REMOTE_ADDR"];
+	 $ipus = $_SERVER["REMOTE_ADDR"] ?? '';
 	 echo "</td></tr>";
 	 }}
 	 echo "</table>";
@@ -5111,8 +5140,8 @@ echo '<table border="0" cellspacing="0" cellpadding="0" width="100%">
 
 /*if ($object_news != '0')
 {
-$sql = mysql_query("SELECT * FROM `news` WHERE id=".$object_news);
-while ($row = mysql_fetch_row($sql))
+$sql = Database::query(Database::statement('SELECT * FROM `news` WHERE id=?', [(int)($object_news)]));
+while ($row = Database::fetchRow($sql))
 
 
 {
@@ -5149,13 +5178,13 @@ echo "</table>";
 
 }
 }*/
-$sql = mysql_query("SELECT * FROM `news` WHERE id=".$object_news);
-while ($row = mysql_fetch_row($sql))
+$sql = Database::query(Database::statement('SELECT * FROM `news` WHERE id=?', [(int)($object_news)]));
+while ($row = Database::fetchRow($sql))
 if ($row[11]==1)
 {
 	{
-		$sql = mysql_query("SELECT * FROM `news` WHERE id=".$object_news);
-		while ($row = mysql_fetch_row($sql))
+		$sql = Database::query(Database::statement('SELECT * FROM `news` WHERE id=?', [(int)($object_news)]));
+		while ($row = Database::fetchRow($sql))
 		
 		{
 		echo "<table cellpadding='0' cellspacing='0' border='0' width='100%'>";
@@ -5193,8 +5222,8 @@ else
 
 {
 	{
-		$sql = mysql_query("SELECT * FROM `news` WHERE id=".$object_news);
-		while ($row = mysql_fetch_row($sql))	
+		$sql = Database::query(Database::statement('SELECT * FROM `news` WHERE id=?', [(int)($object_news)]));
+		while ($row = Database::fetchRow($sql))	
 		{
 		echo "<table cellpadding='0' cellspacing='0' border='0' width='100%'>";
 		echo "<tr><td><h2>".$row[1]."| ".$row[2]."</h2></td></tr>";
@@ -5235,8 +5264,8 @@ else
 switch ($object_news) {
 	case '862':  case '866': case '871': case '873': case '874': case '875': case '876' : case '892' : case '891' :  case '899' : case '904' : case '908' : case '909' : case '911' : case '910' : case '917' : case '921' : case '923' : case '929' : case '930' : case '936' : case '937' : case '938' : case '953' : case '959' : case '961' : case '965' : case '964' : case '966' : case '963' : case '962' : case '969' : case '973' : case '976' : case '977' : case '978' : case '981' : case '986' : case '989' :
 		{
-			$sql = mysql_query("SELECT * FROM `news` WHERE id=".$object_news);
-			while ($row = mysql_fetch_row($sql))
+			$sql = Database::query(Database::statement('SELECT * FROM `news` WHERE id=?', [(int)($object_news)]));
+			while ($row = Database::fetchRow($sql))
 			
 			{
 			echo "<table cellpadding='0' cellspacing='0' border='0' width='100%'>";
@@ -5273,8 +5302,8 @@ switch ($object_news) {
 		break;
 	default:
 	{
-		$sql = mysql_query("SELECT * FROM `news` WHERE id=".$object_news);
-		while ($row = mysql_fetch_row($sql))	
+		$sql = Database::query(Database::statement('SELECT * FROM `news` WHERE id=?', [(int)($object_news)]));
+		while ($row = Database::fetchRow($sql))	
 		{
 		echo "<table cellpadding='0' cellspacing='0' border='0' width='100%'>";
 		echo "<tr><td><h2>".$row[1]."| ".$row[2]."</h2></td></tr>";
@@ -5539,9 +5568,9 @@ echo "<h2>Архив новостей за $object_arh год.
 <a href='index.php?link=20&arh=2026' class='spis9'>2026 год</a>
 </h2>";
 
-$result = mysql_query("SELECT * FROM `news` WHERE  key_news=1 ORDER BY dt DESC");
+$result = Database::query("SELECT * FROM `news` WHERE  key_news=1 ORDER BY dt DESC");
 print('<table border="0" width="100%" cellpadding="0" cellspacing="0">'); 		
-while($res=mysql_fetch_row($result))
+while($res=Database::fetchRow($result))
 {
 $second = substr($res[1],6,4);
 if ($second==$object_arh)
@@ -5575,8 +5604,8 @@ else
 echo "<table cellpadding='0' cellspacing='0' border='0' width='100%' >";
 echo "<tr><td valign='top' colspan='4'><h2>Последние 4 новости</h2></td></tr><tr>";
 
-$sql1 = mysql_query("SELECT * FROM `news` WHERE  key_news=1 ORDER BY id DESC LIMIT 4");
-while ($roww = mysql_fetch_row($sql1))
+$sql1 = Database::query("SELECT * FROM `news` WHERE  key_news=1 ORDER BY id DESC LIMIT 4");
+while ($roww = Database::fetchRow($sql1))
 
 {
 echo "<td valign='top' width='25%'>
@@ -5653,8 +5682,8 @@ echo "</tr>
 
 
 /*echo "<td valign='top' class='spis4' width='20%'>";
-$sql2 = mysql_query("SELECT * FROM `news` WHERE  key_news=1 ORDER BY dt DESC");
-while ($roww = mysql_fetch_row($sql2))
+$sql2 = Database::query("SELECT * FROM `news` WHERE  key_news=1 ORDER BY dt DESC");
+while ($roww = Database::fetchRow($sql2))
 {
 $second = substr($roww[1],6,4);
 if ($second==2017)
@@ -5671,8 +5700,8 @@ echo "</td>";  */
 
 
 /*echo "<td valign='top' class='spis4' width='20%'>";
-$sql2 = mysql_query("SELECT * FROM `news` WHERE  key_news=1 ORDER BY dt DESC");
-while ($roww = mysql_fetch_row($sql2))
+$sql2 = Database::query("SELECT * FROM `news` WHERE  key_news=1 ORDER BY dt DESC");
+while ($roww = Database::fetchRow($sql2))
 {
 $second = substr($roww[1],6,4);
 if ($second==2020)
@@ -5684,8 +5713,8 @@ echo "
 echo "</td>";*/
 /*
 echo "<td valign='top' class='spis4' width='20%'>";
-$sql2 = mysql_query("SELECT * FROM `news` WHERE  key_news=1 ORDER BY dt DESC");
-while ($roww = mysql_fetch_row($sql2))
+$sql2 = Database::query("SELECT * FROM `news` WHERE  key_news=1 ORDER BY dt DESC");
+while ($roww = Database::fetchRow($sql2))
 {
 $second = substr($roww[1],6,4);
 if ($second==2022)
@@ -5698,8 +5727,8 @@ echo "</td>";
 
 
 echo "<td valign='top' class='spis4' width='20%'>";
-$sql2 = mysql_query("SELECT * FROM `news` WHERE  key_news=1 ORDER BY dt DESC");
-while ($roww = mysql_fetch_row($sql2))
+$sql2 = Database::query("SELECT * FROM `news` WHERE  key_news=1 ORDER BY dt DESC");
+while ($roww = Database::fetchRow($sql2))
 {
 $second = substr($roww[1],6,4);
 if ($second==2023)
@@ -5710,8 +5739,8 @@ echo "
 }
 echo "</td>";
 echo "<td valign='top' class='spis4' width='20%'>";
-$sql2 = mysql_query("SELECT * FROM `news` WHERE  key_news=1 ORDER BY dt DESC");
-while ($roww = mysql_fetch_row($sql2))
+$sql2 = Database::query("SELECT * FROM `news` WHERE  key_news=1 ORDER BY dt DESC");
+while ($roww = Database::fetchRow($sql2))
 {
 $second = substr($roww[1],6,4);
 if ($second==2024)
@@ -5722,8 +5751,8 @@ echo "
 }
 echo "</td>";
 echo "<td valign='top' class='spis4' width='20%'>";
-$sql2 = mysql_query("SELECT * FROM `news` WHERE  key_news=1 ORDER BY dt DESC");
-while ($roww = mysql_fetch_row($sql2))
+$sql2 = Database::query("SELECT * FROM `news` WHERE  key_news=1 ORDER BY dt DESC");
+while ($roww = Database::fetchRow($sql2))
 {
 $second = substr($roww[1],6,4);
 if ($second==2025)
@@ -5734,8 +5763,8 @@ echo "
 }
 echo "</td>";
 echo "<td valign='top' class='spis4' width='20%'>";
-$sql2 = mysql_query("SELECT * FROM `news` WHERE  key_news=1 ORDER BY dt DESC");
-while ($roww = mysql_fetch_row($sql2))
+$sql2 = Database::query("SELECT * FROM `news` WHERE  key_news=1 ORDER BY dt DESC");
+while ($roww = Database::fetchRow($sql2))
 {
 $second = substr($roww[1],6,4);
 if ($second==2026)
@@ -5753,8 +5782,8 @@ echo "</tr></table>";
 /*
 echo "<table><tr><td  valign='top' colspan='4' class='spis4'>";
 
-$sql2 = mysql_query("SELECT * FROM `news` WHERE  key_news=1 ORDER BY id DESC LIMIT 3,100");
-while ($roww = mysql_fetch_row($sql2))
+$sql2 = Database::query("SELECT * FROM `news` WHERE  key_news=1 ORDER BY id DESC LIMIT 3,100");
+while ($roww = Database::fetchRow($sql2))
 {
 echo "
 <a href='index.php?link=20&news=".$roww[0]."' class='spis3' title='".$roww[3]."'>".$roww[1]."</a> - $roww[3] |
@@ -5790,9 +5819,9 @@ echo "<h2>Архив новостей за $object_arh год.
 <a href='index.php?link=20&arh=2026' class='spis9'>2026 год</a>
 </h2>";
 
-$result = mysql_query("SELECT * FROM `news` WHERE  key_news=1 ORDER BY dt DESC");
+$result = Database::query("SELECT * FROM `news` WHERE  key_news=1 ORDER BY dt DESC");
 print('<table border="0" width="100%" cellpadding="0" cellspacing="0">'); 		
-while($res=mysql_fetch_row($result))
+while($res=Database::fetchRow($result))
 {
 $second = substr($res[1],6,4);
 if ($second==$object_arh)
@@ -5826,8 +5855,8 @@ else
 echo "<table cellpadding='0' cellspacing='0' border='0' width='100%' >";
 echo "<tr><td valign='top' colspan='4'><h2>Последние 4 новости</h2></td></tr><tr>";
 
-$sql1 = mysql_query("SELECT * FROM `news` WHERE  key_news=1 ORDER BY id DESC LIMIT 4");
-while ($roww = mysql_fetch_row($sql1))
+$sql1 = Database::query("SELECT * FROM `news` WHERE  key_news=1 ORDER BY id DESC LIMIT 4");
+while ($roww = Database::fetchRow($sql1))
 
 {
 echo "<td valign='top' width='25%'>
@@ -5904,8 +5933,8 @@ echo "</tr>
 
 
 /*echo "<td valign='top' class='spis4' width='20%'>";
-$sql2 = mysql_query("SELECT * FROM `news` WHERE  key_news=1 ORDER BY dt DESC");
-while ($roww = mysql_fetch_row($sql2))
+$sql2 = Database::query("SELECT * FROM `news` WHERE  key_news=1 ORDER BY dt DESC");
+while ($roww = Database::fetchRow($sql2))
 {
 $second = substr($roww[1],6,4);
 if ($second==2017)
@@ -5922,8 +5951,8 @@ echo "</td>";  */
 
 
 /*echo "<td valign='top' class='spis4' width='20%'>";
-$sql2 = mysql_query("SELECT * FROM `news` WHERE  key_news=1 ORDER BY dt DESC");
-while ($roww = mysql_fetch_row($sql2))
+$sql2 = Database::query("SELECT * FROM `news` WHERE  key_news=1 ORDER BY dt DESC");
+while ($roww = Database::fetchRow($sql2))
 {
 $second = substr($roww[1],6,4);
 if ($second==2020)
@@ -5935,8 +5964,8 @@ echo "
 echo "</td>";*/
 
 echo "<td valign='top' class='spis4' width='20%'>";
-$sql2 = mysql_query("SELECT * FROM `news` WHERE  key_news=1 ORDER BY dt DESC");
-while ($roww = mysql_fetch_row($sql2))
+$sql2 = Database::query("SELECT * FROM `news` WHERE  key_news=1 ORDER BY dt DESC");
+while ($roww = Database::fetchRow($sql2))
 {
 $second = substr($roww[1],6,4);
 if ($second==2022)
@@ -5949,8 +5978,8 @@ echo "</td>";
 
 
 echo "<td valign='top' class='spis4' width='20%'>";
-$sql2 = mysql_query("SELECT * FROM `news` WHERE  key_news=1 ORDER BY dt DESC");
-while ($roww = mysql_fetch_row($sql2))
+$sql2 = Database::query("SELECT * FROM `news` WHERE  key_news=1 ORDER BY dt DESC");
+while ($roww = Database::fetchRow($sql2))
 {
 $second = substr($roww[1],6,4);
 if ($second==2023)
@@ -5961,8 +5990,8 @@ echo "
 }
 echo "</td>";
 echo "<td valign='top' class='spis4' width='20%'>";
-$sql2 = mysql_query("SELECT * FROM `news` WHERE  key_news=1 ORDER BY dt DESC");
-while ($roww = mysql_fetch_row($sql2))
+$sql2 = Database::query("SELECT * FROM `news` WHERE  key_news=1 ORDER BY dt DESC");
+while ($roww = Database::fetchRow($sql2))
 {
 $second = substr($roww[1],6,4);
 if ($second==2024)
@@ -5973,8 +6002,8 @@ echo "
 }
 echo "</td>";
 echo "<td valign='top' class='spis4' width='20%'>";
-$sql2 = mysql_query("SELECT * FROM `news` WHERE  key_news=1 ORDER BY dt DESC");
-while ($roww = mysql_fetch_row($sql2))
+$sql2 = Database::query("SELECT * FROM `news` WHERE  key_news=1 ORDER BY dt DESC");
+while ($roww = Database::fetchRow($sql2))
 {
 $second = substr($roww[1],6,4);
 if ($second==2025)
@@ -5985,8 +6014,8 @@ echo "
 }
 echo "</td>";
 echo "<td valign='top' class='spis4' width='20%'>";
-$sql2 = mysql_query("SELECT * FROM `news` WHERE  key_news=1 ORDER BY dt DESC");
-while ($roww = mysql_fetch_row($sql2))
+$sql2 = Database::query("SELECT * FROM `news` WHERE  key_news=1 ORDER BY dt DESC");
+while ($roww = Database::fetchRow($sql2))
 {
 $second = substr($roww[1],6,4);
 if ($second==2026)
@@ -6004,8 +6033,8 @@ echo "</tr></table>";
 /*
 echo "<table><tr><td  valign='top' colspan='4' class='spis4'>";
 
-$sql2 = mysql_query("SELECT * FROM `news` WHERE  key_news=1 ORDER BY id DESC LIMIT 3,100");
-while ($roww = mysql_fetch_row($sql2))
+$sql2 = Database::query("SELECT * FROM `news` WHERE  key_news=1 ORDER BY id DESC LIMIT 3,100");
+while ($roww = Database::fetchRow($sql2))
 {
 echo "
 <a href='index.php?link=20&news=".$roww[0]."' class='spis3' title='".$roww[3]."'>".$roww[1]."</a> - $roww[3] |
@@ -6025,8 +6054,8 @@ echo "</td></tr></table>";
 if ($res[0] == '111')
 {
 echo "<table cellpadding='0' cellspacing='0' border='0' class='main'  align='center' width='100%'>";
-//$sql1 = mysql_query("SELECT * FROM `news` WHERE  key_news=1  ORDER BY id DESC");
-//while ($roww = mysql_fetch_row($sql1))
+//$sql1 = Database::query("SELECT * FROM `news` WHERE  key_news=1  ORDER BY id DESC");
+//while ($roww = Database::fetchRow($sql1))
 //{
 echo "
 <tr>
@@ -6076,9 +6105,9 @@ if ($user_flag!==null && $user_flag<1)
 {
 echo "<table cellpadding='0' cellspacing='10' border='0' width='100%' class='main'><tr><td>";
 
-$sql=mysql_query("SELECT * FROM richstone_page where id=101");
+$sql=Database::query("SELECT * FROM richstone_page where id=101");
  
-while ($st = mysql_fetch_row($sql))
+while ($st = Database::fetchRow($sql))
 {
 echo $st[2];
 }
@@ -6091,16 +6120,16 @@ echo "</td></tr></table>";
 
 if ($res[0] == '90')
 {
-$sqll=mysql_query("SELECT * FROM pogoda");
+$sqll=Database::query("SELECT * FROM pogoda");
 echo "<b>Все города:</b>";
-while ($newss = mysql_fetch_row($sqll))
+while ($newss = Database::fetchRow($sqll))
 {
 echo "<a class='spis3' href='index.php?link=89&pogoda=".$newss[0]."'>".$newss[1]."</a> ";
 }
 
 
-$sql=mysql_query("SELECT * FROM pogoda where id=".$object_pogoda );
-while ($newss = mysql_fetch_row($sql))
+$sql=Database::query(Database::statement('SELECT * FROM pogoda where id=?', [(int)($object_pogoda)]));
+while ($newss = Database::fetchRow($sql))
 {
 echo "<br><br><h2>Гидрометцентр РБ. Прогноз погоды г. ".$newss[1]." на 6 дней</h2>";
 echo "<table cellpadding='0' cellspacing='0' border='0' width='100%'>";
@@ -6168,8 +6197,8 @@ echo '<table style="border-collapse: collapse;" border="0" cellspacing="0" cellp
 
 
 
-$sql = mysql_query("SELECT * FROM `blankiname` WHERE id>0");
-while ($nameblank = mysql_fetch_row($sql))
+$sql = Database::query("SELECT * FROM `blankiname` WHERE id>0");
+while ($nameblank = Database::fetchRow($sql))
 {
 
 echo '<tr><td class="zag11" style="text-align: center;" colspan="4">'; echo $nameblank[1]; echo'<br><span class="zag12">'; //echo $nameblank[3];
@@ -6183,9 +6212,9 @@ echo '
 <td class="zag10" align="center" width="150"><strong>Действие</strong></td>
 </tr>';
 
-$sql1 = mysql_query("SELECT * FROM `blankibzd` WHERE priznak=".$nameblank[2]." order by id ASC");
+$sql1 = Database::query(Database::statement('SELECT * FROM `blankibzd` WHERE priznak=? order by id ASC', [(int)($nameblank[2])]));
 
-for ($i=1; $i<($row = mysql_fetch_row($sql1)); $i++) 
+for ($i=1; $i<($row = Database::fetchRow($sql1)); $i++) 
 {
 echo '<tr>
 <td class="spis" align="left" width="280">';echo $row[3]; echo '</td>
@@ -6228,7 +6257,7 @@ echo '</td>
 
 if ($res[0] == '215')
 {
-$ipusu=$_SERVER["REMOTE_ADDR"];
+$ipusu = $_SERVER["REMOTE_ADDR"] ?? '';
 $cut = substr($ipusu, 0, 6);
 
 if ($cut== "10.1.0")

@@ -1,25 +1,5 @@
 <?php
-// PHP 5.3.3 + MySQL 5.1.73 compatible config (mysqli)
-define('DB_HOST','localhost');
-define('DB_NAME','telephone');
-define('DB_USER','root');
-define('DB_PASS','web2012irc');
-
-define('ADMIN_PASSWORD','admin123');
-
-function db(){
-    static $mysqli = null;
-    if ($mysqli === null) {
-        $mysqli = new mysqli(DB_HOST, DB_USER, DB_PASS, DB_NAME);
-        if ($mysqli->connect_error) {
-            die('DB connection failed: ' . $mysqli->connect_error);
-        }
-        $mysqli->set_charset('cp1251');
-        $mysqli->query("SET NAMES cp1251");
-    }
-    return $mysqli;
-}
-
+require_once __DIR__ . '/src/bootstrap.php';
 function autoIcon($d){
     if (strpos($d,'Снегг')!==false) return 'sneg.jpg';
     if (strpos($d,'Гроза с дождем')!==false) return 'groza_dozd.jpg';
@@ -33,32 +13,32 @@ function autoIcon($d){
 }
 
 
-$mysqli = db();
+$weatherPdo = Database::connect();
 
 // 1) last passed time
-$sql = "SELECT forecast_at, temperature, description, icon, extra_text
+$weatherSql = "SELECT forecast_at, temperature, description, icon, extra_text
         FROM weather_forecast
         WHERE forecast_at <= NOW()
         ORDER BY forecast_at DESC
         LIMIT 1";
-$res = $mysqli->query($sql);
-$w = ($res) ? $res->fetch_assoc() : null;
+$weatherStatement = $weatherPdo->query($weatherSql);
+$weather = ($weatherStatement) ? $weatherStatement->fetch(PDO::FETCH_ASSOC) : null;
 
 // 2) if none, take nearest future
-if (!$w) {
-    $sql = "SELECT forecast_at, temperature, description, icon, extra_text
+if (!$weather) {
+    $weatherSql = "SELECT forecast_at, temperature, description, icon, extra_text
             FROM weather_forecast
             WHERE forecast_at > NOW()
             ORDER BY forecast_at ASC
             LIMIT 1";
-    $res = $mysqli->query($sql);
-    $w = ($res) ? $res->fetch_assoc() : null;
+    $weatherStatement = $weatherPdo->query($weatherSql);
+    $weather = ($weatherStatement) ? $weatherStatement->fetch(PDO::FETCH_ASSOC) : null;
 }
 ?>
 <!doctype html>
 <html>
 <head>
-        <meta charset="utf-8">
+        <meta charset="windows-1251">
         <style>
 
 .weather-informer {
@@ -121,25 +101,25 @@ if (!$w) {
 <body>
 
 
-<?php if ($w) { ?>
+<?php if ($weather) { ?>
     <div class="weather-informer">
     <div class="city-name">МИНСК</div>
     <div class="date-time">
-    <?php echo date('d.m.Y', strtotime($w['forecast_at'])); ?> |
-    по состоянию <?php echo date('H:i', strtotime($w['forecast_at'])); ?>     </div>
+    <?php echo date('d.m.Y', strtotime($weather['forecast_at'])); ?> |
+    по состоянию <?php echo date('H:i', strtotime($weather['forecast_at'])); ?>     </div>
     <div class="weather-icon">
     <?php
-        $icon = (!empty($w['icon'])) ? $w['icon'] : autoIcon($w['description']);
+        $icon = (!empty($weather['icon'])) ? $weather['icon'] : autoIcon($weather['description']);
     ?>
-    <img src="/ed/upload-files/2025/pogoda/<?php echo htmlspecialchars($icon, ENT_QUOTES, 'UTF-8'); ?>" width="55" height="45" alt=""></div>
+    <img src="/ed/upload-files/2025/pogoda/<?php echo htmlspecialchars($icon, ENT_QUOTES, 'Windows-1251'); ?>" width="55" height="45" alt=""></div>
     
     <div class="temperature">
     <?php
-$temp = (int)$w['temperature'];
+$temp = (int)$weather['temperature'];
 $tempText = ($temp > 0) ? ('+' . $temp) : (string)$temp; // 0 останется "0", отрицательные уже со знаком "-"
 ?>
     <?php echo $tempText; ?> <sup>°C</sup></div>
-    <div class="condition"> <?php echo $w['description']; ?></div>
+    <div class="condition"> <?php echo $weather['description']; ?></div>
 
 <?php } else { ?>
     <p>Нет данных</p>

@@ -1,11 +1,9 @@
-
-
-
 <?php
+require_once __DIR__ . '/src/bootstrap.php';
+header('Content-Type: text/html; charset=UTF-8');
 // admin.php
 // Подключение к базе данных
-$mysqli = new mysqli('localhost', 'root', 'web2012irc', 'telephone');
-if ($mysqli->connect_errno) { die('Ошибка: ' . $mysqli->connect_error); }
+$pdo = Database::connect(null, 'utf8mb4');
 
 $date = date('Y-m-d');
 $message = '';
@@ -14,24 +12,21 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
     for ($i = 1; $i <= 3; $i++) {
         $content = isset($_POST["content$i"]) ? $_POST["content$i"] : '';
         // Проверяем, есть ли запись
-        $stmt = $mysqli->prepare("SELECT id FROM content WHERE interface_id=? AND date=?");
-        $stmt->bind_param('is', $i, $date);
-        $stmt->execute();
-        $stmt->store_result();
-        if ($stmt->num_rows > 0) {
+        $stmt = $pdo->prepare("SELECT id FROM content WHERE interface_id=? AND date=?");
+        $stmt->execute([$i, $date]);
+        $existing = $stmt->fetchColumn();
+        if ($existing !== false) {
             // Обновляем
-            $stmt2 = $mysqli->prepare("UPDATE content SET content=? WHERE interface_id=? AND date=?");
-            $stmt2->bind_param('sis', $content, $i, $date);
-            $stmt2->execute();
-            $stmt2->close();
+            $stmt2 = $pdo->prepare("UPDATE content SET content=? WHERE interface_id=? AND date=?");
+            $stmt2->execute([$content, $i, $date]);
+            $stmt2->closeCursor();
         } else {
             // Вставляем
-            $stmt2 = $mysqli->prepare("INSERT INTO content (interface_id, content, date) VALUES (?, ?, ?)");
-            $stmt2->bind_param('iss', $i, $content, $date);
-            $stmt2->execute();
-            $stmt2->close();
+            $stmt2 = $pdo->prepare("INSERT INTO content (interface_id, content, date) VALUES (?, ?, ?)");
+            $stmt2->execute([$i, $content, $date]);
+            $stmt2->closeCursor();
         }
-        $stmt->close();
+        $stmt->closeCursor();
     }
     $message = 'Данные сохранены';
 }
@@ -39,13 +34,11 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
 // Получаем текущий контент
 $interface_content = array();
 for ($i = 1; $i <= 3; $i++) {
-    $stmt = $mysqli->prepare("SELECT content FROM content WHERE interface_id=? AND date=?");
-    $stmt->bind_param('is', $i, $date);
-    $stmt->execute();
-    $stmt->bind_result($content);
-    $stmt->fetch();
-    $interface_content[$i] = $content;
-    $stmt->close();
+    $stmt = $pdo->prepare("SELECT content FROM content WHERE interface_id=? AND date=?");
+    $stmt->execute([$i, $date]);
+    $content = $stmt->fetchColumn();
+    $interface_content[$i] = $content === false ? '' : $content;
+    $stmt->closeCursor();
 }
 ?>
 
